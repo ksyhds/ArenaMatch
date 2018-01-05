@@ -2,6 +2,7 @@ package com.Moon_Eclipse.ArenaMatch;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -21,6 +22,7 @@ public class PlayerProfile
 {
 	Configuration Profile = ArenaMatch.Profile;
 	Configuration userscore = ArenaMatch.userscore;
+	Configuration stats = ArenaMatch.stats;
 	
 	Economy vault = ArenaMatch.getPluginEconomy();
 	
@@ -232,119 +234,113 @@ public class PlayerProfile
 		*/
 		this.getstat(Entity, StatInfo);
 		
-		stats.add("§f");
-		stats.add("§f〔 §b이동 속도: §d" + PlusMinus(StatInfo[0], false) + "% §f〕");
+		stats.add("　");	
+		//stats.add("§f〔 §b이동 속도: §d" + PlusMinus(StatInfo[0], false) + "% §f〕");
+		
 		stats.add("§f");
 		stats.add("§a▶ §c공격");
 		if((StatInfo[1] + StatInfo[2]) != 0d)
 		{
-			stats.add("§f( §e추가 피해: §d" + PlusMinus(StatInfo[1], true) + " - " + PlusMinus(StatInfo[2], true) + " §f)");
+			stats.add("　　§f• §e모든 피해 : §d" + PlusMinus(StatInfo[1], false) + " ~ " + PlusMinus(StatInfo[2], true) + " §f)");
 		}
 		if(StatInfo[3] != 0d)
 		{
-			stats.add("§f( §c방어 무시 피해: §d"+ PlusMinus(StatInfo[3], true) +" §f)");
+			stats.add("　　§f• §c방어 무시 피해: §d"+ PlusMinus(StatInfo[3], false) +" §f)");
 		}
 		if(StatInfo[4] != 0d)
 		{
-			stats.add("§f( §4치명타 확률: §d" + PlusMinus(StatInfo[4], false) + "% §f)");
+			stats.add("　　§f• §4치명타 확률: §d" + PlusMinus(StatInfo[4], false) + "% §f)");
 		}
 		if(StatInfo[5] != 0d)
 		{
-			stats.add("§f( §4치명타 피해: §d50 " + PlusMinus((StatInfo[5]), false) +"% §f)");
+			stats.add("　　§f• §4치명타 피해: §d50 " + PlusMinus((StatInfo[5]), false) +"% §f)");
 		}
 		else
 		{
-			stats.add("§f( §4치명타 피해: §d50% §f)");
+			stats.add("　　§f• §4치명타 피해: §d50% §f)");
 		}
 		if(StatInfo[6] != 0d)
 		{
 			String newStat = PlusMinus((StatInfo[6]), false);
-			stats.add("§f( §6생명력 흡수: §d" + newStat.replaceAll("\\+", "+ ").replaceAll("\\-", "- ") + "% §f)"); // 문장의 제일 처음에 + 나오면 에러가 발생하므로 \\를 추가
+			stats.add("　　§f• §6생명력 흡수: §d" + newStat.replaceAll("\\+", "+ ").replaceAll("\\-", "- ") + "% §f)"); // 문장의 제일 처음에 + 나오면 에러가 발생하므로 \\를 추가
 		}
 		if((StatInfo[7] + StatInfo[8]) != 0d)
 		{
-			stats.add("§f( §c플레이어 피해: §d" + PlusMinus(StatInfo[7], true) + " - " + PlusMinus(StatInfo[8], true) + " §f)");
+			stats.add("　　§f• §c플레이어 피해: §d" + PlusMinus(StatInfo[7], false) + " ~ " + PlusMinus(StatInfo[8], true) + " §f)");
 		}
 		if((StatInfo[9] /*+ StatInfo[10]*/) != 0d)
 		{
-			stats.add("§f( §c몬스터 피해: §d" + PlusMinus(StatInfo[9], true)/* + " - " + PlusMinus(StatInfo[10], true)*/ + " §f)");
+			stats.add("　　§f• §c몬스터 피해: §d" + PlusMinus(StatInfo[9], false)/* + " ~ " + PlusMinus(StatInfo[10], true)*/ + " §f)");
 		}
 		stats.add("§f");
 		stats.add("§a▶ §3방어");
 		if(StatInfo[11] != 0d)
 		{
-			stats.add("§f( §3피해 감소: §d" + PlusMinus(StatInfo[11], false) + "% §f)");
+			stats.add("　　§f• §3피해 감소: §d" + PlusMinus(StatInfo[11], false) + "% §f)");
 		}
 		if(StatInfo[12] != 0d)
 		{
-			String newStat = PlusMinus((StatInfo[12]), true);
-			stats.add("§f( §a생명력: §d100 "+ newStat.replaceAll("\\+", "+ ").replaceAll("\\-", "- ") + " §f)");
+			String newStat = PlusMinus((StatInfo[12]), false);
+			stats.add("　　§f• §a생명력: §d100 "+ newStat.replaceAll("\\+", "+ ").replaceAll("\\-", "- ") + " §f)");
 		}
 		else
 		{
-			stats.add("§f( §a생명력: §d100 §f)");
+			stats.add("　　§f• §a생명력: §d100 §f)");
 		}
 		if(StatInfo[13] != 0d)
 		{
-			stats.add("§f( §a생명력 재생: §d"+ PlusMinus(StatInfo[13], false) + "% §f)");
+			stats.add("　　§f• §a생명력 재생: §d"+ PlusMinus(StatInfo[13], false) + "% §f)");
 		}
 		if(StatInfo[14] != 0d)
 		{
-			stats.add("§f( §6공격 회피: §d" + PlusMinus(StatInfo[14], false) + "% §f)");
+			stats.add("　　§f• §6공격 회피: §d" + PlusMinus(StatInfo[14], false) + "% §f)");
 		}
 		if(StatInfo[15] != 0d)
 		{
-			stats.add("§f( §3피해 무시: §d" + PlusMinus(StatInfo[15], true) + " §f)");
+			stats.add("　　§f• §3피해 무시: §d" + PlusMinus(StatInfo[15], false) + " §f)");
 		}
 		if(StatInfo[23] != 0d)
 		{
-			stats.add("§f( §3플레이어 피해 무시: §d" + PlusMinus(StatInfo[23], true) + " §f)");
+			stats.add("　　§f• §3플레이어 피해 무시: §d" + PlusMinus(StatInfo[23], false) + " §f)");
 		}
 		if(StatInfo[24] != 0d)
 		{
-			stats.add("§f( §3몬스터 피해 무시: §d" + PlusMinus(StatInfo[24], true) + " §f)");
+			stats.add("　　§f• §3몬스터 피해 무시: §d" + PlusMinus(StatInfo[24], false) + " §f)");
 		}
 		if(StatInfo[25] != 0d)
 		{
-			stats.add("§f( §3화살 피해 무시: §d" + PlusMinus(StatInfo[25], true) + " §f)");
+			stats.add("　　§f• §3화살 피해 무시: §d" + PlusMinus(StatInfo[25], false) + " §f)");
 		}
 		if(StatInfo[16] != 0d)
 		{
-			stats.add("§f( §6피해 반사: §d" + PlusMinus(StatInfo[16], false) + "% §f)");
+			stats.add("　　§f• §6피해 반사: §d" + PlusMinus(StatInfo[16], false) + "% §f)");
 		}
 		stats.add("§f");
 		stats.add("§a▶ §2상태이상");
 		if(StatInfo[17] != 0d)
 		{
-			stats.add("§f( §c화상: §d" + PlusMinus(StatInfo[17], false) + "% §f)");
+			stats.add("　　§f• §c화상: §d" + PlusMinus(StatInfo[17], false) + "% §f)");
 		}
 		if(StatInfo[18] != 0d)
 		{
-			stats.add("§f( §c빙결: §d" + PlusMinus(StatInfo[18], false) + "% §f)");
+			stats.add("　　§f• §c빙결: §d" + PlusMinus(StatInfo[18], false) + "% §f)");
 		}
 		if(StatInfo[19] != 0d)
 		{
-			stats.add("§f( §c중독: §d" + PlusMinus(StatInfo[19], false) + "% §f)");
+			stats.add("　　§f• §c중독: §d" + PlusMinus(StatInfo[19], false) + "% §f)");
 		}
 		if(StatInfo[20] != 0d)
 		{
-			stats.add("§f( §c위더: §d" + PlusMinus(StatInfo[20], false) + "% §f)");
+			stats.add("　　§f• §c위더: §d" + PlusMinus(StatInfo[20], false) + "% §f)");
 		}
 		if(StatInfo[21] != 0d)
 		{
-			stats.add("§f( §c실명: §d" + PlusMinus(StatInfo[21], false) + "% §f)");
+			stats.add("　　§f• §c실명: §d" + PlusMinus(StatInfo[21], false) + "% §f)");
 		}
 		if(StatInfo[22] != 0d)
 		{
-			stats.add("§f( §5영혼 약탈: §d" + PlusMinus(StatInfo[22], false) + "% §f)");
-		}
-		
-		
-		
-		
-		
-		
-		
+			stats.add("　　§f• §5영혼 약탈: §d" + PlusMinus(StatInfo[22], false) + "% §f)");
+		}		
 		return stats;
 	}
 	public double[] getstat(LivingEntity Entity, double[] StatInfo)
@@ -590,97 +586,18 @@ public class PlayerProfile
 		{
 			String[] split = s.split(":");
 			String statname = split[0].substring(2);
-			if(statname.equals("이동 속도"))
+			// 읽어들인 스탯의 이름으로부터 숫자를 구함. 이후에 스탯 배열을 참고할때 사용함.
+			
+			Set<String> keys = stats.getConfigurationSection("stats").getKeys(false);
+			int statvalue = 0;
+			for(String key : keys)
 			{
-				b = 0;
-			}
-			if(statname.equals("추가 피해"))
-			{
-				b = 1;
-			}
-			if(statname.equals("방어 무시 피해"))
-			{
-				b = 2;
-			}
-			if(statname.equals("치명타 확률"))
-			{
-				b = 3;
-			}
-			if(statname.equals("치명타 피해"))
-			{
-				b = 4;
-			}
-			if(statname.equals("생명력 흡수"))
-			{
-				b = 5;
-			}
-			if(statname.equals("플레이어 피해"))
-			{
-				b = 6;
-			}
-			if(statname.equals("몬스터 피해"))
-			{
-				b = 7;
-			}
-			if(statname.equals("피해 감소"))
-			{
-				b = 8;
-			}
-			if(statname.equals("추가 생명력"))
-			{
-				b = 9;
-			}
-			if(statname.equals("생명력 재생"))
-			{
-				b = 10;
-			}
-			if(statname.equals("공격 회피"))
-			{
-				b = 11;
-			}
-			if(statname.equals("피해 무시"))
-			{
-				b = 12;
-			}
-			if(statname.equals("피해 반사"))
-			{
-				b = 13;
-			}
-			if(statname.equals("화상"))
-			{
-				b = 14;
-			}
-			if(statname.equals("빙결"))
-			{
-				b = 15;
-			}
-			if(statname.equals("중독"))
-			{
-				b = 16;
-			}
-			if(statname.equals("위더"))
-			{
-				b = 17;
-			}
-			if(statname.equals("실명"))
-			{
-				b = 18;
-			}
-			if(statname.equals("영혼 약탈"))
-			{
-				b = 19;
-			}
-			if(statname.equals("플레이어 피해 무시"))
-			{
-				b = 20;
-			}
-			if(statname.equals("몬스터 피해 무시"))
-			{
-				b = 21;
-			}
-			if(statname.equals("화살 피해 무시"))
-			{
-				b = 22;
+				if(statname.equals(stats.getString("stats." + key)))
+				{
+					Bukkit.broadcastMessage(statvalue+"");
+					return statvalue;
+				}
+				statvalue++;
 			}
 		}
 		return b;
@@ -688,8 +605,11 @@ public class PlayerProfile
 	public double nonRange(double ValueInt, String s, boolean percent)
 	{
 		//( 치명타 확률: +5.1% )
+		//rxwv
+		//0123
+		
 		String[] split = s.split(": ");
-		String ValueString = split[1].replace("〕", ")");
+		String ValueString = split[1];
 		if(percent)
 		{
 			if(ValueString.contains("+"))
@@ -707,12 +627,12 @@ public class PlayerProfile
 		{
 			if(ValueString.contains("+"))
 			{
-				ValueString = ValueString.substring(ValueString.indexOf("+"), ValueString.indexOf(")")-1);
+				ValueString = ValueString.substring(ValueString.indexOf("+"), ValueString.length());
 				ValueInt += Double.parseDouble(ValueString.replace("+", ""));
 			}
 			else if(ValueString.contains("-"))
 			{
-				ValueString = ValueString.substring(ValueString.indexOf("-"), ValueString.indexOf(")")-1);
+				ValueString = ValueString.substring(ValueString.indexOf("-"), ValueString.length());
 				ValueInt -= Double.parseDouble(ValueString.replace("-", ""));
 			}
 		}
@@ -726,7 +646,7 @@ public class PlayerProfile
 		double[] i = new double[2];
 		String[] split = s.split(": ");
 		String[] split2 = split[1].split(" - ");
-		split2[1] = split2[1].replace("〕", ")");
+		//split2[1] = split2[1];
 		if(split2[0].contains("+"))
 		{
 			String ValueString = split2[0].substring(split2[0].indexOf("+"));
@@ -739,12 +659,12 @@ public class PlayerProfile
 		}
 		if(split2[1].contains("+"))
 		{
-			String ValueString = split2[1].substring(split2[1].indexOf("+"), split2[1].indexOf(" )"));
+			String ValueString = split2[1].substring(split2[1].indexOf("+"), split2[1].length());
 			ValueInt2 += Double.parseDouble(ValueString.replace("+", ""));
 		}
 		else if(split2[1].contains("-"))
 		{
-			String ValueString = split2[1].substring(split2[1].indexOf("-"), split2[1].indexOf(" )"));
+			String ValueString = split2[1].substring(split2[1].indexOf("-"), split2[1].length());
 			ValueInt2 += Double.parseDouble(ValueString.replace("-", ""));
 		}
 		i[0] = ValueInt1;
@@ -752,5 +672,4 @@ public class PlayerProfile
 		
 		return i;
 	}
-	
 }

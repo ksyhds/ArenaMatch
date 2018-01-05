@@ -100,8 +100,8 @@ import com.Moon_Eclipse.MCMANYtitle.*;
 public class ArenaMatch extends JavaPlugin implements Listener
 {
 
-	static FileConfiguration userscore;
 	File UserScore;
+	static FileConfiguration userscore;
 	FileConfiguration submap;
 	File SubMap;
 	FileConfiguration title;
@@ -114,6 +114,8 @@ public class ArenaMatch extends JavaPlugin implements Listener
 	File GuildFile;
 	static FileConfiguration tier;
 	File TierFile;
+	static FileConfiguration stats;
+	File StatsFile;
 	
 	Configuration c;
 	
@@ -180,6 +182,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		this.saveDefaultPartyFile();
 		this.saveDefaultGuildFile();
 		this.saveDefaultTierFile();
+		this.saveDefaultStatsFile();
 		
 		c = this.getConfig();
 		this.GetGUIIcon();
@@ -205,6 +208,9 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		
 		TierFile = new File(getDataFolder(), "tier.yml");
 		tier = YamlConfiguration.loadConfiguration(TierFile);
+		
+		StatsFile = new File(getDataFolder(), "stats.yml");
+		stats = YamlConfiguration.loadConfiguration(StatsFile);
 		
 		getEconomy();
 		InitializeArena();
@@ -349,6 +355,8 @@ public class ArenaMatch extends JavaPlugin implements Listener
 								guild = YamlConfiguration.loadConfiguration(GuildFile);
 								TierFile = new File(getDataFolder(), "tier.yml");
 								tier = YamlConfiguration.loadConfiguration(TierFile);
+								StatsFile = new File(getDataFolder(), "stats.yml");
+								stats = YamlConfiguration.loadConfiguration(StatsFile);
 								
 								p.sendMessage("리로드 완료");
 							}
@@ -3126,6 +3134,28 @@ public class ArenaMatch extends JavaPlugin implements Listener
 	        getLogger().log(Level.SEVERE, "Could not save config to " + TitleFile, ex);
 	    }
 	}
+	public void saveDefaultStatsFile()
+	{
+		   if (StatsFile == null)
+		   {
+			   StatsFile = new File(getDataFolder(), "stats.yml");
+		   }
+		   if (!StatsFile.exists())
+		   {            
+			   this.saveResource("stats.yml", true);
+		   }
+	}
+	public void saveStats()
+	{
+		try 
+		{
+			stats.save(StatsFile);
+	    }
+		catch (IOException ex)
+		{
+	        getLogger().log(Level.SEVERE, "Could not save config to " + StatsFile, ex);
+	    }
+	}
 	public Economy getEconomy()
 	{
         if(!vaultLoaded)
@@ -3502,5 +3532,6 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		p.stopSound(Sound.RECORD_11, SoundCategory.RECORDS);
 		p.stopSound(Sound.RECORD_13, SoundCategory.RECORDS);
 		p.stopSound(Sound.RECORD_MELLOHI, SoundCategory.RECORDS);
-	}
+	}	
+	
 }
