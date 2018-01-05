@@ -1,0 +1,26 @@
+name: ArenaMatch
+main: com.Moon_Eclipse.ArenaMatch.ArenaMatch
+version: L1.2[17.10.27]
+softdepend: [Essentials, MCMANYTitle]
+author: Moon_Eclipse(MineArena Minecraft Arena Server)
+commands:
+  Arena:
+    description: /Arena reload, /Arena save, Arena rank, Arena Move, Arena setspawn, Arena Setsubmap 아레나이름 서브맵이름
+  메세지:
+    description: /메세지 할말
+  앨범:
+    description: /앨범 등록, /앨범 해제
+  프로필:
+    description: /프로필
+  순위:
+    description: /순위 1~X
+  법전:
+    description: /순위 1~X
+  파티:
+    description: /파티 가입 파티이름 비밀번호, /파티 만들기 이름 비밀번호, /파티 파티장 닉네임, /파티 삭제 비밀번호, /파티 초대 닉네임, /파티 강퇴 닉네임, /파티 파티원, /파티 탈퇴
+  p:
+    description: /p - 파티 채팅을 활성화 한다.
+  g:
+    description: /g - 길드 채팅을 활성화 한다.
+  수리:
+    description: /아이템의 속성을 무한으로 변경한다.

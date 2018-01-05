@@ -1,0 +1,18 @@
+userscore:
+  Moon_Eclipse:
+    Score: 475
+    WinCount: 0
+    DeWinCount: 0
+    FieldKillCount: 0
+    UserMessage: '@'
+    item:
+      use: false
+      id:
+      meta:
+      amount:
+      name: ''
+      color: ''
+      lore:
+        - ''
+      enchants:
+        - ''

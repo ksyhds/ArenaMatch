@@ -1,0 +1,100 @@
+# 
+# 아레나이름.submap "이름,에센셜 워프1, 에센션 워프2"
+submap:
+  Default:
+    SubMaps:
+    - '마을1,village1-1,village1-2'
+    Rewards:
+    - 절강
+    - ps4
+    Loser_Rewards:
+    - 절강
+    - ps4
+    Default_Rewards:
+    - 절강
+  Plains:
+    SubMaps:
+    - '마을1,village1-1,village1-2'
+    Rewards:
+    - ''
+    Loser_Rewards:
+    - ''
+    Default_Rewards:
+    - 절강
+  Jungle:
+    SubMaps:
+    - '마을1,village1-1,village1-2'
+    Rewards:
+    - ''
+    Loser_Rewards:
+    - ''
+    Default_Rewards:
+    - 절강
+  Hell:
+    SubMaps:
+    - '마을1,village1-1,village1-2'
+    Rewards:
+    - ''
+    Loser_Rewards:
+    - ''
+    Default_Rewards:
+    - 절강
+  Medieval:
+    SubMaps:
+    - '마을1,village1-1,village1-2'
+    Rewards:
+    - ''
+    Loser_Rewards:
+    - ''
+    Default_Rewards:
+    - 절강
+  Snowy_Mountains:
+    SubMaps:
+    - '마을1,village1-1,village1-2'
+    Rewards:
+    - ''
+    Loser_Rewards:
+    - ''
+    Default_Rewards:
+    - 절강
+  Cemetery:
+    SubMaps:
+    - '마을1,village1-1,village1-2'
+    Rewards:
+    - ''
+    Loser_Rewards:
+    - ''
+    Default_Rewards:
+    - 절강
+  Cave:
+    SubMaps:
+    - '마을1,village1-1,village1-2'
+    Rewards:
+    - ''
+    Loser_Rewards:
+    - ''
+    Default_Rewards:
+    - 절강
+  Sky_island:
+    SubMaps:
+    - '마을1,village1-1,village1-2'
+    Rewards:
+    - ''
+    Loser_Rewards:
+    - ''
+    Default_Rewards:
+    - 절강
+  Lib:
+    SubMaps:
+    - '마을1,village1-1,village1-2'
+    Rewards:
+    - ''
+    Loser_Rewards:
+    - ''
+    Default_Rewards:
+    - 절강
+  FieldArena:
+    Points:
+    - 'Field1'
+    - 'Field2'
+    - 'Field3'
