@@ -47,6 +47,7 @@ import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageModifier;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
@@ -73,6 +74,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.permissions.Permissible;
 import org.bukkit.permissions.PermissionAttachmentInfo;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -88,6 +90,7 @@ import org.bukkit.scoreboard.ScoreboardManager;
 import com.earth2me.essentials.api.Economy;
 import com.earth2me.essentials.api.NoLoanPermittedException;
 import com.earth2me.essentials.api.UserDoesNotExistException;
+import com.google.common.base.Equivalence.Wrapper;
 
 import forblue.armor.plugins.EventListener;
 
@@ -95,6 +98,8 @@ import forblue.armor.plugins.EventListener;
 
 import com.Moon_Eclipse.MCgive.*;
 import com.Moon_eclipse.EclipseLib.LibMain;
+import com.Moon_Eclipse.ArenaPlayer.ArenaPlayer;
+import com.Moon_Eclipse.ArenaPlayer.WrapperManager;
 import com.Moon_Eclipse.MCMANYtitle.*;
 
 public class ArenaMatch extends JavaPlugin implements Listener
@@ -122,7 +127,9 @@ public class ArenaMatch extends JavaPlugin implements Listener
 	public static final String VAULT = "Vault";
     static Economy vault = null;
     boolean vaultLoaded = false;
-	
+    
+    WrapperManager ArenaPlayerManager;
+    
 	HashMap<String,String> match = new HashMap<String,String>();
 	HashMap<String,String> usemap = new HashMap<String,String>();
 	HashMap<String,String> UseArena = new HashMap<String,String>();
@@ -169,11 +176,12 @@ public class ArenaMatch extends JavaPlugin implements Listener
 	HashMap<Integer, List<String>> 묘지 = new HashMap<Integer, List<String>>();
 	HashMap<Integer, List<String>> 천공섬 = new HashMap<Integer, List<String>>();
 	
-	
+	private static ArenaMatch instance;
 	
 	public void onEnable()
 	{
-		
+		instance = this;
+		ArenaPlayerManager = new WrapperManager();
 		this.saveDefaultConfig();
 		this.saveDefaultSubMap();
 		this.saveDefaultUserScore();
@@ -256,6 +264,16 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				{
 					switch(args[0])
 					{
+						case "bowforce":
+							
+							String Playername = args[1];
+							Player temp_p = Bukkit.getPlayer(Playername);
+							ArenaPlayer ap = ArenaPlayerManager.getArtenaPlayer(temp_p);
+							float bowforce = ap.getPlayerBowForce();
+							
+							p.sendMessage("입력이름: " + Playername + ", BowForce: " + bowforce);
+							
+						break;
 						case "sendmessage":
 							p.sendMessage("§b[마인아레나] §e전투중에는 사용할 수 없는 명령어 입니다.");
 						break;
@@ -1552,7 +1570,22 @@ public class ArenaMatch extends JavaPlugin implements Listener
 			}
 		}
 	}
-	
+	@EventHandler
+	public void onShootBow(EntityShootBowEvent event)
+	{
+		float BowForce = event.getForce();
+		LivingEntity entity = event.getEntity();
+		if(entity instanceof Player)
+		{
+			Player p = (Player) entity;
+			ArenaPlayer ap = ArenaPlayerManager.getArtenaPlayer(p);
+			ap.setBowForce(BowForce);
+			Bukkit.broadcastMessage(ap.getPlayerBowForce() + "");
+		}
+		
+
+		
+	}
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onDamageByEntity(EntityDamageByEntityEvent event)
 	{
@@ -3532,6 +3565,10 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		p.stopSound(Sound.RECORD_11, SoundCategory.RECORDS);
 		p.stopSound(Sound.RECORD_13, SoundCategory.RECORDS);
 		p.stopSound(Sound.RECORD_MELLOHI, SoundCategory.RECORDS);
+	}
+	public static ArenaMatch getInstance()
+	{
+		return instance;
 	}	
 	
 }

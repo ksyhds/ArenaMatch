@@ -15,7 +15,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import com.earth2me.essentials.api.Economy;
 import com.earth2me.essentials.api.UserDoesNotExistException;
-
 import com.Moon_Eclipse.MCMANYtitle.*;
 import com.Moon_eclipse.EclipseLib.LibMain;
 public class PlayerProfile 
@@ -594,7 +593,6 @@ public class PlayerProfile
 			{
 				if(statname.equals(stats.getString("stats." + key)))
 				{
-					Bukkit.broadcastMessage(statvalue+"");
 					return statvalue;
 				}
 				statvalue++;

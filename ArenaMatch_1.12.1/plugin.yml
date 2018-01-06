@@ -1,6 +1,6 @@
 name: ArenaMatch
 main: com.Moon_Eclipse.ArenaMatch.ArenaMatch
-version: 1.3[18.01.05]
+version: 1.4[18.01.06]
 softdepend: [Essentials, MCMANYTitle]
 author: Moon_Eclipse(MineArena Minecraft Arena Server)
 commands:
