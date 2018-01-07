@@ -1660,15 +1660,35 @@ public class ArenaMatch extends JavaPlugin implements Listener
 					target2.damage(damage/3);
 				}	
 				
-				int AddtiveDamageOffset = (int)Damager_StatInfo[8] - (int)Damager_StatInfo[7];
+				// 23.0 - 21.5 = 1.5
+				double AddtiveDamageOffset = Damager_StatInfo[8] - Damager_StatInfo[7];
 				
+				// offset = 1.5 -> 1.5 > 0 = true
 				if(AddtiveDamageOffset > 0)
 				{
-					int AddtiveDamageToPlayer = ran.nextInt(AddtiveDamageOffset)+(int)Damager_StatInfo[7];
+					// AddtiveDamageToPlayer = 0.0 ~ 1.5
+					// = 최소 데미지 + (ran.nextdouble * offset) 
+					// 만약 0.5 * 0.5의 경우라면 0.25중  0.05는 버림
+					double randomDouble = AddtiveDamageOffset * ran.nextDouble();
+					 
+					double AddtiveDamageToPlayer = double_round(randomDouble,2);
+					
+					// 화살에 의한 공격일 경우 데미지의 증가폭이 활시위를 당긴 정도에 의해 결정됨.
+					if(event.getCause().toString().equals("PROJECTILE"))
+					{
+						ArenaPlayer ap = ArenaPlayerManager.getArtenaPlayer(p);
+						float bowForce = ap.getPlayerBowForce();
+						
+						AddtiveDamageToPlayer =((double)bowForce* damage);
+						
+						Bukkit.broadcastMessage(AddtiveDamageToPlayer+"");
+					}
+					
 					damage += (double)AddtiveDamageToPlayer;
-					event.setDamage(damage);
+					
 					//Bukkit.broadcastMessage("데미지: " + event.getDamage());
 					
+					event.setDamage(damage);
 				}
 				
 				this.BloodSuck(p, target2, Damager_StatInfo, event.getDamage());
@@ -3566,9 +3586,14 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		p.stopSound(Sound.RECORD_13, SoundCategory.RECORDS);
 		p.stopSound(Sound.RECORD_MELLOHI, SoundCategory.RECORDS);
 	}
+	private static double double_round (double value, int precision) {
+	    int scale = (int) Math.pow(10, precision);
+	    return (double) Math.round(value * scale) / scale;
+	}
 	public static ArenaMatch getInstance()
 	{
 		return instance;
 	}	
+	
 	
 }
