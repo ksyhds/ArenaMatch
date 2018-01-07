@@ -282,50 +282,50 @@ public class PlayerProfile
 		this.getstat(Entity, StatInfo);
 		
 		//스탯을 프로필에 직접 추가함
-		StatLore.add("　");
-		StatLore = MurgeProfileStatLore(StatLore,"　　§f• §b이동 속도: §d", StatInfo[0], StatInfo[1], StatInfo[2],false, 0.0d);
+		StatLore.add("   ");
+		StatLore = MurgeProfileStatLore(StatLore,"   §f• §b이동 속도: §d", StatInfo[0], StatInfo[1], StatInfo[2],true, 0.0d);
 		//stats.add("§f• §b이동 속도: §d" + PlusMinus(StatInfo[0], false));
-		StatLore.add("　");	
+		StatLore.add("   ");	
 		
 		//stats.add("§f〔 §b이동 속도: §d" + PlusMinus(StatInfo[0], false) + "% §f〕");
 		
-		StatLore.add("§f");
-		StatLore.add("§a▶ §c공격");
-		StatLore = MurgeProfileStatLore(StatLore,"　　§f• §e모든 피해 : §d", StatInfo[3], StatInfo[4], StatInfo[5],false, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore,"　　§f• §c방어 무시 피해: §d", StatInfo[6], StatInfo[7], StatInfo[8],false, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore,"　　§f• §4치명타 확률: §d", StatInfo[9], StatInfo[10], StatInfo[11],true, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore,"　　§f• §4치명타 피해: §d ", StatInfo[12], StatInfo[13], StatInfo[14],true, 50.0d);
-		StatLore = MurgeProfileStatLore(StatLore,"　　§f• §6생명력 흡수: §d", StatInfo[15], StatInfo[16], StatInfo[17], true, 0.0d);
+		StatLore.add("   §f");
+		StatLore.add("   §a▶ §c공격");
+		StatLore = MurgeProfileStatLore(StatLore,"   §f• §e모든 피해 : §d", StatInfo[3], StatInfo[4], StatInfo[5],false, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore,"   §f• §c방어 무시 피해: §d", StatInfo[6], StatInfo[7], StatInfo[8],false, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore,"   §f• §4치명타 확률: §d", StatInfo[9], StatInfo[10], StatInfo[11],true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore,"   §f• §4치명타 피해: §d ", StatInfo[12], StatInfo[13], StatInfo[14],true, 50.0d);
+		StatLore = MurgeProfileStatLore(StatLore,"   §f• §6생명력 흡수: §d", StatInfo[15], StatInfo[16], StatInfo[17], true, 0.0d);
 
-		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §c플레이어 피해: §d", StatInfo[18], StatInfo[19], StatInfo[20], false, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §c몬스터 피해: §d", StatInfo[21], StatInfo[22], StatInfo[23], false, 0.0d);
-
-		
-		StatLore.add("§f");
-		StatLore.add("§a▶ §3방어");
-		
-		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §3피해 감소: §d", StatInfo[24], StatInfo[25], StatInfo[26], true, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §a생명력: §d100 ", StatInfo[27], StatInfo[28], StatInfo[29], false, 100.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §a생명력 재생: §d", StatInfo[30], StatInfo[31], StatInfo[32], true, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §6공격 회피: §d", StatInfo[33], StatInfo[34], StatInfo[35], true, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §3피해 무시: §d", StatInfo[36], StatInfo[37], StatInfo[38], false, 0.0d);  
-		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §6피해 반사: §d", StatInfo[39], StatInfo[40], StatInfo[41], true, 0.0d);  
-		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §3플레이어 피해 무시: §d", StatInfo[42], StatInfo[43], StatInfo[44], false, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §3몬스터 피해 무시: §d", StatInfo[45], StatInfo[46], StatInfo[47], false, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §3화살 피해 무시: §d", StatInfo[48], StatInfo[49], StatInfo[50], false, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "   §f• §c플레이어 피해: §d", StatInfo[18], StatInfo[19], StatInfo[20], false, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "   §f• §c몬스터 피해: §d", StatInfo[21], StatInfo[22], StatInfo[23], false, 0.0d);
 
 		
-
-
-		StatLore.add("§f");
-		StatLore.add("§a▶ §2상태이상");
+		StatLore.add("   §f");
+		StatLore.add("   §a▶ §3방어");
 		
-		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §c화상: §d", StatInfo[51], StatInfo[52], StatInfo[53], true, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §c빙결: §d", StatInfo[54], StatInfo[55], StatInfo[56], true, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §c중독: §d", StatInfo[57], StatInfo[58], StatInfo[59], true, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §c위더: §d", StatInfo[60], StatInfo[61], StatInfo[62], true, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §c실명: §d", StatInfo[63], StatInfo[64], StatInfo[65], true, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §5영혼 약탈: §d", StatInfo[66], StatInfo[67], StatInfo[68], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "   §f• §3피해 감소: §d", StatInfo[24], StatInfo[25], StatInfo[26], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "   §f• §a생명력: §d100 ", StatInfo[27], StatInfo[28], StatInfo[29], false, 100.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "   §f• §a생명력 재생: §d", StatInfo[30], StatInfo[31], StatInfo[32], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "   §f• §6공격 회피: §d", StatInfo[33], StatInfo[34], StatInfo[35], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "   §f• §3피해 무시: §d", StatInfo[36], StatInfo[37], StatInfo[38], false, 0.0d);  
+		StatLore = MurgeProfileStatLore(StatLore, "   §f• §6피해 반사: §d", StatInfo[39], StatInfo[40], StatInfo[41], true, 0.0d);  
+		StatLore = MurgeProfileStatLore(StatLore, "   §f• §3플레이어 피해 무시: §d", StatInfo[42], StatInfo[43], StatInfo[44], false, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "   §f• §3몬스터 피해 무시: §d", StatInfo[45], StatInfo[46], StatInfo[47], false, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "   §f• §3화살 피해 무시: §d", StatInfo[48], StatInfo[49], StatInfo[50], false, 0.0d);
+
+		
+
+
+		StatLore.add("   §f");
+		StatLore.add("   §a▶ §2상태이상");
+		
+		StatLore = MurgeProfileStatLore(StatLore, "   §f• §c화상: §d", StatInfo[51], StatInfo[52], StatInfo[53], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "   §f• §c빙결: §d", StatInfo[54], StatInfo[55], StatInfo[56], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "   §f• §c중독: §d", StatInfo[57], StatInfo[58], StatInfo[59], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "   §f• §c위더: §d", StatInfo[60], StatInfo[61], StatInfo[62], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "   §f• §c실명: §d", StatInfo[63], StatInfo[64], StatInfo[65], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "   §f• §5영혼 약탈: §d", StatInfo[66], StatInfo[67], StatInfo[68], true, 0.0d);
 
 		return StatLore;
 	}
@@ -661,7 +661,7 @@ public class PlayerProfile
 	}
 	public List<String> MurgeProfileStatLore(List<String> StatLore, String Prefix, double Single_value, double Min_Value, double Max_value,boolean percent,double offset)
 	{
-		// prefix = "　　§f• §b이동 속도 : §d";
+		// prefix = "   §f• §b이동 속도 : §d";
 		String return_string = "";
 		if((Min_Value + Max_value + Single_value) == 0d)
 		{
@@ -672,7 +672,7 @@ public class PlayerProfile
 				{
 					return_string = return_string + "%";
 				}
-				StatLore.add(return_string);
+				StatLore.add(return_string + "   ");
 				return StatLore;	
 			}
 		}
@@ -683,7 +683,7 @@ public class PlayerProfile
 			{
 				return_string = return_string + "%";
 			}
-			StatLore.add(return_string);
+			StatLore.add(return_string + "   ");
 			return StatLore;
 		}
 		else if ((Min_Value + Max_value) != 0d)
@@ -697,7 +697,7 @@ public class PlayerProfile
 			{
 				return_string =Prefix + PlusMinus(Min_Value, false) + "% ~ " + PlusMinus(Max_value, false) + "%"; 
 			}
-			StatLore.add(return_string);
+			StatLore.add(return_string + "   ");
 			return StatLore;
 		}
 		
@@ -705,7 +705,6 @@ public class PlayerProfile
 	}
 	public double[] LoreContainString(double[] StatInfo, String lore, int Single_value, int Min_Value, int Max_value, boolean percent)
 	{
-		Bukkit.broadcastMessage(Min_Value + ", " + Max_value + ", " + Single_value);
 		if(lore.contains("~"))
 		{
 			double[] ranges = this.Range(StatInfo[Min_Value], StatInfo[Max_value], lore);
