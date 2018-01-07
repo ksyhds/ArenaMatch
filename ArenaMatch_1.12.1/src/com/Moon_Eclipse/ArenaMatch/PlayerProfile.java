@@ -200,8 +200,12 @@ public class PlayerProfile
 	*/
 	public List<String> EquipStat(LivingEntity Entity)
 	{
-		List<String> stats = new ArrayList<String>();
-		double[] StatInfo = new double[30];
+		List<String> StatLore = new ArrayList<String>();
+		double[] StatInfo = new double[100];
+		for(int i = 0 ; i > StatInfo.length ; i++)
+		{
+			StatInfo[i] = 0;
+		}
 		
 		/*
 		 * 이동 속도		0
@@ -212,8 +216,8 @@ public class PlayerProfile
 		 * 치명타 피해		5
 		 * 생명력 흡수		6
 		 * 플레이어 추가 피해	7 - 8
-		 * 몬스터 피해		9     
-		 * 				10번은 본래 몬스터 피해의 최대범위 표현인자였으나 차후 수정에 의해 제거되고 몬스터 피해는 단일 피해가 됨. 17.10.27
+		 * 몬스터 피해		9 - 10
+		 * 
 		 * 피해 감소		11
 		 * 추가 생명력		12
 		 * 생명력 재생		13
@@ -231,116 +235,99 @@ public class PlayerProfile
 		 * 몬스터 피해 무시 	24
 		 * 화살 피해 무시	25
 		*/
+		
+		//-----------------------------------------------------------
+		
+		/*
+		 * 스탯이름            단일     범위
+		 * 
+		 * 이동 속도		0 , 1 - 2
+		 * -> 공격
+		 * 추가 피해		3 , 4 - 5
+		 * 방어 무시		6 , 7 - 8
+		 * 치명타 확률		9 , 10 - 11
+		 * 치명타 피해		12 , 13 - 14 
+		 * 생명력 흡수		15 , 16 - 17
+		 * 플레이어 추가 피해	18 , 19 - 20
+		 * 몬스터 피해		21 , 22 - 23   
+		 * -> 방어    
+		 * 피해 감소		24 , 25 - 26
+		 * 추가 생명력		27 , 28 - 29
+		 * 생명력 재생		30 , 31 - 32
+		 * 공격 회피		33 , 34 - 35
+		 * 피해 무시		36 , 37 - 38
+		 * 피해 반사		39 , 40 - 41
+		 * 플레이어 피해 무시 42 , 43 - 44
+		 * 몬스터 피해 무시  	45 , 46 - 47
+		 * 화살 피해 무시      48 , 49 - 50
+		 * 
+		 * -> 상태이상
+		 * 			
+		 * 화상			51 , 52 - 53
+		 * 빙결			54 , 55 - 56
+		 * 중독			57 , 58 - 59
+		 * 위더	 		60 , 61 - 62
+		 * 실명 			63 , 64 - 65
+		 * 영혼 약탈 		66 , 67 - 68
+		*/
+		//-----------------------------------------------------------
+
+		
+		// 범위 스탯정보의 각 합이 0이라면 단일 정보만 존재하는 것이므로 단일 정보만 프로필에 기재되도록 수정해야 함.
+		// 만일 범위 스탯과 단일 스탯이 동시에 존재한다면 최종 적으로 나타나야하는 값은 '최소 + 단일 ~ 최대 + 단일'  값이여야 함.
+		// 범위와 단일 값을 모두 얻어야 하기 때문에 스탯 연산을 적어도 2번 해야함.
+		// getstat -> StatCalculator -> getStatCase -> StatCalculator -> Range,nonRange
+		
+		//스탯을 얻어옴
 		this.getstat(Entity, StatInfo);
 		
-		stats.add("　");	
+		//스탯을 프로필에 직접 추가함
+		StatLore.add("　");
+		StatLore = MurgeProfileStatLore(StatLore,"　　§f• §b이동 속도: §d", StatInfo[0], StatInfo[1], StatInfo[2],false, 0.0d);
+		//stats.add("§f• §b이동 속도: §d" + PlusMinus(StatInfo[0], false));
+		StatLore.add("　");	
+		
 		//stats.add("§f〔 §b이동 속도: §d" + PlusMinus(StatInfo[0], false) + "% §f〕");
 		
-		stats.add("§f");
-		stats.add("§a▶ §c공격");
-		if((StatInfo[1] + StatInfo[2]) != 0d)
-		{
-			stats.add("　　§f• §e모든 피해 : §d" + PlusMinus(StatInfo[1], false) + " ~ " + PlusMinus(StatInfo[2], true) + " §f)");
-		}
-		if(StatInfo[3] != 0d)
-		{
-			stats.add("　　§f• §c방어 무시 피해: §d"+ PlusMinus(StatInfo[3], false) +" §f)");
-		}
-		if(StatInfo[4] != 0d)
-		{
-			stats.add("　　§f• §4치명타 확률: §d" + PlusMinus(StatInfo[4], false) + "% §f)");
-		}
-		if(StatInfo[5] != 0d)
-		{
-			stats.add("　　§f• §4치명타 피해: §d50 " + PlusMinus((StatInfo[5]), false) +"% §f)");
-		}
-		else
-		{
-			stats.add("　　§f• §4치명타 피해: §d50% §f)");
-		}
-		if(StatInfo[6] != 0d)
-		{
-			String newStat = PlusMinus((StatInfo[6]), false);
-			stats.add("　　§f• §6생명력 흡수: §d" + newStat.replaceAll("\\+", "+ ").replaceAll("\\-", "- ") + "% §f)"); // 문장의 제일 처음에 + 나오면 에러가 발생하므로 \\를 추가
-		}
-		if((StatInfo[7] + StatInfo[8]) != 0d)
-		{
-			stats.add("　　§f• §c플레이어 피해: §d" + PlusMinus(StatInfo[7], false) + " ~ " + PlusMinus(StatInfo[8], true) + " §f)");
-		}
-		if((StatInfo[9] /*+ StatInfo[10]*/) != 0d)
-		{
-			stats.add("　　§f• §c몬스터 피해: §d" + PlusMinus(StatInfo[9], false)/* + " ~ " + PlusMinus(StatInfo[10], true)*/ + " §f)");
-		}
-		stats.add("§f");
-		stats.add("§a▶ §3방어");
-		if(StatInfo[11] != 0d)
-		{
-			stats.add("　　§f• §3피해 감소: §d" + PlusMinus(StatInfo[11], false) + "% §f)");
-		}
-		if(StatInfo[12] != 0d)
-		{
-			String newStat = PlusMinus((StatInfo[12]), false);
-			stats.add("　　§f• §a생명력: §d100 "+ newStat.replaceAll("\\+", "+ ").replaceAll("\\-", "- ") + " §f)");
-		}
-		else
-		{
-			stats.add("　　§f• §a생명력: §d100 §f)");
-		}
-		if(StatInfo[13] != 0d)
-		{
-			stats.add("　　§f• §a생명력 재생: §d"+ PlusMinus(StatInfo[13], false) + "% §f)");
-		}
-		if(StatInfo[14] != 0d)
-		{
-			stats.add("　　§f• §6공격 회피: §d" + PlusMinus(StatInfo[14], false) + "% §f)");
-		}
-		if(StatInfo[15] != 0d)
-		{
-			stats.add("　　§f• §3피해 무시: §d" + PlusMinus(StatInfo[15], false) + " §f)");
-		}
-		if(StatInfo[23] != 0d)
-		{
-			stats.add("　　§f• §3플레이어 피해 무시: §d" + PlusMinus(StatInfo[23], false) + " §f)");
-		}
-		if(StatInfo[24] != 0d)
-		{
-			stats.add("　　§f• §3몬스터 피해 무시: §d" + PlusMinus(StatInfo[24], false) + " §f)");
-		}
-		if(StatInfo[25] != 0d)
-		{
-			stats.add("　　§f• §3화살 피해 무시: §d" + PlusMinus(StatInfo[25], false) + " §f)");
-		}
-		if(StatInfo[16] != 0d)
-		{
-			stats.add("　　§f• §6피해 반사: §d" + PlusMinus(StatInfo[16], false) + "% §f)");
-		}
-		stats.add("§f");
-		stats.add("§a▶ §2상태이상");
-		if(StatInfo[17] != 0d)
-		{
-			stats.add("　　§f• §c화상: §d" + PlusMinus(StatInfo[17], false) + "% §f)");
-		}
-		if(StatInfo[18] != 0d)
-		{
-			stats.add("　　§f• §c빙결: §d" + PlusMinus(StatInfo[18], false) + "% §f)");
-		}
-		if(StatInfo[19] != 0d)
-		{
-			stats.add("　　§f• §c중독: §d" + PlusMinus(StatInfo[19], false) + "% §f)");
-		}
-		if(StatInfo[20] != 0d)
-		{
-			stats.add("　　§f• §c위더: §d" + PlusMinus(StatInfo[20], false) + "% §f)");
-		}
-		if(StatInfo[21] != 0d)
-		{
-			stats.add("　　§f• §c실명: §d" + PlusMinus(StatInfo[21], false) + "% §f)");
-		}
-		if(StatInfo[22] != 0d)
-		{
-			stats.add("　　§f• §5영혼 약탈: §d" + PlusMinus(StatInfo[22], false) + "% §f)");
-		}		
-		return stats;
+		StatLore.add("§f");
+		StatLore.add("§a▶ §c공격");
+		StatLore = MurgeProfileStatLore(StatLore,"　　§f• §e모든 피해 : §d", StatInfo[3], StatInfo[4], StatInfo[5],false, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore,"　　§f• §c방어 무시 피해: §d", StatInfo[6], StatInfo[7], StatInfo[8],false, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore,"　　§f• §4치명타 확률: §d", StatInfo[9], StatInfo[10], StatInfo[11],true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore,"　　§f• §4치명타 피해: §d ", StatInfo[12], StatInfo[13], StatInfo[14],true, 50.0d);
+		StatLore = MurgeProfileStatLore(StatLore,"　　§f• §6생명력 흡수: §d", StatInfo[15], StatInfo[16], StatInfo[17], true, 0.0d);
+
+		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §c플레이어 피해: §d", StatInfo[18], StatInfo[19], StatInfo[20], false, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §c몬스터 피해: §d", StatInfo[21], StatInfo[22], StatInfo[23], false, 0.0d);
+
+		
+		StatLore.add("§f");
+		StatLore.add("§a▶ §3방어");
+		
+		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §3피해 감소: §d", StatInfo[24], StatInfo[25], StatInfo[26], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §a생명력: §d100 ", StatInfo[27], StatInfo[28], StatInfo[29], false, 100.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §a생명력 재생: §d", StatInfo[30], StatInfo[31], StatInfo[32], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §6공격 회피: §d", StatInfo[33], StatInfo[34], StatInfo[35], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §3피해 무시: §d", StatInfo[36], StatInfo[37], StatInfo[38], false, 0.0d);  
+		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §6피해 반사: §d", StatInfo[39], StatInfo[40], StatInfo[41], true, 0.0d);  
+		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §3플레이어 피해 무시: §d", StatInfo[42], StatInfo[43], StatInfo[44], false, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §3몬스터 피해 무시: §d", StatInfo[45], StatInfo[46], StatInfo[47], false, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §3화살 피해 무시: §d", StatInfo[48], StatInfo[49], StatInfo[50], false, 0.0d);
+
+		
+
+
+		StatLore.add("§f");
+		StatLore.add("§a▶ §2상태이상");
+		
+		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §c화상: §d", StatInfo[51], StatInfo[52], StatInfo[53], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §c빙결: §d", StatInfo[54], StatInfo[55], StatInfo[56], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §c중독: §d", StatInfo[57], StatInfo[58], StatInfo[59], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §c위더: §d", StatInfo[60], StatInfo[61], StatInfo[62], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §c실명: §d", StatInfo[63], StatInfo[64], StatInfo[65], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "　　§f• §5영혼 약탈: §d", StatInfo[66], StatInfo[67], StatInfo[68], true, 0.0d);
+
+		return StatLore;
 	}
 	public double[] getstat(LivingEntity Entity, double[] StatInfo)
 	{
@@ -461,7 +448,7 @@ public class PlayerProfile
 				s = "+"+d;
 			}
 		}
-		return s;
+		return s.replaceAll("\\+", "+ ").replaceAll("\\-", "- ");
 	}
 	public double[] StatCalculator(List<String> lores, double[] StatInfo, boolean isOffHand)
 	{
@@ -474,103 +461,104 @@ public class PlayerProfile
 				switch(Case)
 				{
 				case 0:
-					StatInfo[0] = this.nonRange(StatInfo[0], lore, true);
+					if(!isOffHand)
+					{
+						StatInfo = LoreContainString(StatInfo, lore, 0, 1, 2, true);
+
+					}
 					break;
 				case 1:
 					if(!isOffHand)
 					{
-						double[] ranges = this.Range(StatInfo[1], StatInfo[2], lore);
-						StatInfo[1] = ranges[0];
-						StatInfo[2] = ranges[1];
+						StatInfo = LoreContainString(StatInfo, lore, 3, 4, 5, false);
+
 					}
 					break;
 				case 2:
 					if(!isOffHand)
 					{
-						StatInfo[3] = this.nonRange(StatInfo[3], lore, false);
+						StatInfo = LoreContainString(StatInfo, lore, 6, 7, 8, false);
+
 					}
 					break;
 				case 3:
 					if(!isOffHand)
 					{
-						StatInfo[4] = this.nonRange(StatInfo[4], lore, true);
+						StatInfo = LoreContainString(StatInfo, lore, 9, 10, 11, true);
+
 					}
 					break;
 				case 4:
 					if(!isOffHand)
 					{
-						StatInfo[5] = this.nonRange(StatInfo[5], lore, true);
+						StatInfo = LoreContainString(StatInfo, lore, 12, 13, 14, true);
+
 					}
 					break;
 				case 5:
 					if(!isOffHand)
 					{
-						StatInfo[6] = this.nonRange(StatInfo[6], lore, true);
+						StatInfo = LoreContainString(StatInfo, lore, 15, 16, 17, true);
+
 					}
 					break;
 				case 6:
 					if(!isOffHand)
 					{
-						double[] ranges = this.Range(StatInfo[7], StatInfo[8], lore);
-						StatInfo[7] = ranges[0];
-						StatInfo[8] = ranges[1];
+						StatInfo = LoreContainString(StatInfo, lore, 18, 19, 29, false);
 					}
 					break;
 				case 7:
 					if(!isOffHand)
 					{
-						/*
-						double[] ranges = this.Range(StatInfo[9], StatInfo[10], lore);
-						StatInfo[9] = ranges[0];
-						StatInfo[10] = ranges[1];
-						*/
-						StatInfo[9] = this.nonRange(StatInfo[9], lore, false);
+						StatInfo = LoreContainString(StatInfo, lore, 21, 22, 23, false);
 					}
 					break;
 				case 8:
-					StatInfo[11] = this.nonRange(StatInfo[11], lore, true);
+						StatInfo = LoreContainString(StatInfo, lore, 24, 25, 26, true);
+					
 					break;
 				case 9:
-					StatInfo[12] = this.nonRange(StatInfo[12], lore, false);
+						StatInfo = LoreContainString(StatInfo, lore, 27, 28, 29, false);
 					break;
 				case 10:
-					StatInfo[13] = this.nonRange(StatInfo[13], lore, true);
+						StatInfo = LoreContainString(StatInfo, lore, 30, 31, 32, true);
 					break;
 				case 11:
-					StatInfo[14] = this.nonRange(StatInfo[14], lore, true);
+						StatInfo = LoreContainString(StatInfo, lore, 33, 32, 35, true);
 					break;
 				case 12:
-					StatInfo[15] = this.nonRange(StatInfo[15], lore, false);
+						StatInfo = LoreContainString(StatInfo, lore, 36, 37, 38, false);
 					break;
 				case 13:
-					StatInfo[16] = this.nonRange(StatInfo[16], lore, true);
+						StatInfo = LoreContainString(StatInfo, lore, 39, 40, 31, true);
 					break;
 				case 14:
-					StatInfo[17] = this.nonRange(StatInfo[17], lore, true);
+						StatInfo = LoreContainString(StatInfo, lore, 42, 43, 44, true);
 					break;
 				case 15:
-					StatInfo[18] = this.nonRange(StatInfo[18], lore, true);
+						StatInfo = LoreContainString(StatInfo, lore, 45, 46, 47, true);
 					break;
 				case 16:
-					StatInfo[19] = this.nonRange(StatInfo[19], lore, true);
+						StatInfo = LoreContainString(StatInfo, lore, 48, 49, 50, true);
 					break;
 				case 17:
-					StatInfo[20] = this.nonRange(StatInfo[20], lore, true);
+						StatInfo = LoreContainString(StatInfo, lore, 51, 52, 53, true);
 					break;
 				case 18:
-					StatInfo[21] = this.nonRange(StatInfo[21], lore, true);
+						StatInfo = LoreContainString(StatInfo, lore, 54, 55, 56, true);
 					break;
 				case 19:
-					StatInfo[22] = this.nonRange(StatInfo[22], lore, true);
+						StatInfo = LoreContainString(StatInfo, lore, 57, 58, 59, true);
 					break;
 				case 20:
-					StatInfo[23] = this.nonRange(StatInfo[23], lore, false);
+						StatInfo = LoreContainString(StatInfo, lore, 60, 61, 62, false);
 					break;
 				case 21:
-					StatInfo[24] = this.nonRange(StatInfo[24], lore, false);
+						StatInfo = LoreContainString(StatInfo, lore, 63, 64, 65, false);
 					break;
 				case 22:
-					StatInfo[25] = this.nonRange(StatInfo[25], lore, false);
+						StatInfo = LoreContainString(StatInfo, lore, 66, 67, 68, false);
 					break;
 				}
 			}
@@ -579,12 +567,12 @@ public class PlayerProfile
 	}
 	public int getStatCase(String s)
 	{
-		//( 플레이어 추가 피해: +@ - +@ )
+		//&f⦁  &3피해 감소 : &d+6.5%'
 		int b = -1;
 		if(s.contains(":"))
 		{
 			String[] split = s.split(":");
-			String statname = split[0].substring(2);
+			String statname = split[0].substring(split[0].indexOf("⦁")+2,split[0].length()-1 );
 			// 읽어들인 스탯의 이름으로부터 숫자를 구함. 이후에 스탯 배열을 참고할때 사용함.
 			
 			Set<String> keys = stats.getConfigurationSection("stats").getKeys(false);
@@ -598,6 +586,7 @@ public class PlayerProfile
 				statvalue++;
 			}
 		}
+		
 		return b;
 	}
 	public double nonRange(double ValueInt, String s, boolean percent)
@@ -643,7 +632,7 @@ public class PlayerProfile
 		//( 추가 피해: +@ - +@ )
 		double[] i = new double[2];
 		String[] split = s.split(": ");
-		String[] split2 = split[1].split(" - ");
+		String[] split2 = split[1].split(" ~ ");
 		//split2[1] = split2[1];
 		if(split2[0].contains("+"))
 		{
@@ -669,5 +658,66 @@ public class PlayerProfile
 		i[1] = ValueInt2;
 		
 		return i;
+	}
+	public List<String> MurgeProfileStatLore(List<String> StatLore, String Prefix, double Single_value, double Min_Value, double Max_value,boolean percent,double offset)
+	{
+		// prefix = "　　§f• §b이동 속도 : §d";
+		String return_string = "";
+		if((Min_Value + Max_value + Single_value) == 0d)
+		{
+			if(offset != 0.0d)
+			{
+				return_string = Prefix + PlusMinus(offset, false);
+				if(percent)
+				{
+					return_string = return_string + "%";
+				}
+				StatLore.add(return_string);
+				return StatLore;	
+			}
+		}
+		else if((Min_Value + Max_value) == 0d)
+		{
+			return_string =  Prefix + PlusMinus(Single_value, false);
+			if(percent)
+			{
+				return_string = return_string + "%";
+			}
+			StatLore.add(return_string);
+			return StatLore;
+		}
+		else if ((Min_Value + Max_value) != 0d)
+		{
+			
+			Min_Value += Single_value;
+			Max_value += Single_value;
+			
+			return_string = Prefix + PlusMinus(Min_Value, false) + " ~ " + PlusMinus(Max_value, false);
+			if(percent)
+			{
+				return_string =Prefix + PlusMinus(Min_Value, false) + "% ~ " + PlusMinus(Max_value, false) + "%"; 
+			}
+			StatLore.add(return_string);
+			return StatLore;
+		}
+		
+		return StatLore;
+	}
+	public double[] LoreContainString(double[] StatInfo, String lore, int Single_value, int Min_Value, int Max_value, boolean percent)
+	{
+		Bukkit.broadcastMessage(Min_Value + ", " + Max_value + ", " + Single_value);
+		if(lore.contains("~"))
+		{
+			double[] ranges = this.Range(StatInfo[Min_Value], StatInfo[Max_value], lore);
+			StatInfo[Min_Value] = ranges[0];
+			StatInfo[Max_value] = ranges[1];
+		}
+		else
+		{
+			StatInfo[Single_value] = this.nonRange(StatInfo[Single_value], lore, percent);
+		}
+		
+		return StatInfo;
+		
 	}
 }

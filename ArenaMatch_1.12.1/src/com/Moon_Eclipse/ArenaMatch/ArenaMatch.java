@@ -178,8 +178,11 @@ public class ArenaMatch extends JavaPlugin implements Listener
 	
 	private static ArenaMatch instance;
 	
+	PlayerProfile pp;
+	
 	public void onEnable()
 	{
+		
 		instance = this;
 		ArenaPlayerManager = new WrapperManager();
 		this.saveDefaultConfig();
@@ -223,6 +226,8 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		getEconomy();
 		InitializeArena();
 		this.MainTimer();
+		
+		pp = new PlayerProfile();
 	}
 	public void onDisable()
 	{
@@ -258,12 +263,23 @@ public class ArenaMatch extends JavaPlugin implements Listener
 						p.sendMessage("/Arena kill 이름 - 대상의 체력을 0으로 만들어 사망하게함.");
 						p.sendMessage("/Arena setscore 이름 점수- 대상의 경쟁전 점수를 수정합니다.");
 						p.sendMessage("/Arena color 플레이어이름 알파벳/숫자 - 해당 플레이어의 채팅 색상을 변경");
+						
 					}
 				}
 				if(args.length >= 1)
 				{
 					switch(args[0])
 					{
+						case "getprofile":
+							
+							double stat_array[] = new double[30];
+							stat_array = pp.getstat(p, stat_array);
+							for(int i = 0 ; i < 30 ; i ++)
+							{
+								p.sendMessage(i + "번째: " + stat_array[i]);
+							}
+							
+						break;
 						case "bowforce":
 							
 							String Playername = args[1];
@@ -1044,7 +1060,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				{
 					Player p = (Player) sender;
 					PlayerWhoClicked.put(p.getName(), p.getName());
-					PlayerProfile pp = new PlayerProfile();
+					
 					p.openInventory(pp.CreateProfile(p));
 					
 				}
@@ -1368,7 +1384,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				{
 					
 					PlayerWhoClicked.put(p.getName(), target.getName());
-					PlayerProfile pp = new PlayerProfile();
+					
 					p.openInventory(pp.CreateProfile(target));
 				}
 			}
@@ -1633,7 +1649,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 			
 			//Bukkit.broadcastMessage("최초 데미지: " + event.getDamage());
 			double damage = event.getDamage();
-			PlayerProfile pp = new PlayerProfile();
+			
 			Entity target = event.getEntity();
 			Entity damager = event.getDamager();
 			if(event.getCause().toString().equals("PROJECTILE"))
@@ -1671,7 +1687,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 					// 만약 0.5 * 0.5의 경우라면 0.25중  0.05는 버림
 					double randomDouble = AddtiveDamageOffset * ran.nextDouble();
 					 
-					double AddtiveDamageToPlayer = double_round(randomDouble,2);
+					double AddtiveDamageToPlayer = LibMain.double_round(randomDouble,2);
 					
 					// 화살에 의한 공격일 경우 데미지의 증가폭이 활시위를 당긴 정도에 의해 결정됨.
 					if(event.getCause().toString().equals("PROJECTILE"))
@@ -1827,6 +1843,25 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				}
 			}
 		}
+	}
+	@EventHandler
+	public void onPickupItem(PlayerPickupItemEvent event)
+	{
+		Player p = event.getPlayer();
+		ItemStack target = event.getItem().getItemStack();
+		int itemid = target.getTypeId();
+		if(itemid == 262)
+		{
+			if(!target.hasItemMeta())
+			{
+				if(!p.isOp())
+				{
+					event.setCancelled(true);
+				}
+				
+			}
+		}
+		
 	}
 	@EventHandler
 	public void onPickupArrow(PlayerPickupArrowEvent event)
@@ -2014,7 +2049,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 							p2.setGlowing(true);
 							p1.sendMessage("§b[마인아레나] §e전투가 시작되었습니다. 상대를 처치하거나 죽으면 전투가 종료됩니다.");
 							p2.sendMessage("§b[마인아레나] §e전투가 시작되었습니다. 상대를 처치하거나 죽으면 전투가 종료됩니다.");
-							PlayerProfile pp = new PlayerProfile();
+							
 							p1.openInventory(pp.CreateProfile(p2));
 							p2.openInventory(pp.CreateProfile(p1));
 						}
@@ -3586,10 +3621,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		p.stopSound(Sound.RECORD_13, SoundCategory.RECORDS);
 		p.stopSound(Sound.RECORD_MELLOHI, SoundCategory.RECORDS);
 	}
-	private static double double_round (double value, int precision) {
-	    int scale = (int) Math.pow(10, precision);
-	    return (double) Math.round(value * scale) / scale;
-	}
+
 	public static ArenaMatch getInstance()
 	{
 		return instance;
