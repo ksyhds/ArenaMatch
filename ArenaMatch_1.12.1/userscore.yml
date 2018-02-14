@@ -1,6 +1,8 @@
 userscore:
   Moon_Eclipse:
     Score: 475
+    Attributes: "0:0:0:0:0:0:0"
+    Attribute_Point: 30;
     WinCount: 0
     DeWinCount: 0
     FieldKillCount: 0

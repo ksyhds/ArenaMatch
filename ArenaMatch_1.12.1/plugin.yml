@@ -1,6 +1,6 @@
 name: ArenaMatch
 main: com.Moon_Eclipse.ArenaMatch.ArenaMatch
-version: 1.4[18.01.06]
+version: 1.5.5[18.01.28]
 softdepend: [Essentials, MCMANYTitle]
 author: Moon_Eclipse(MineArena Minecraft Arena Server)
 commands:
@@ -11,7 +11,7 @@ commands:
   앨범:
     description: /앨범 등록, /앨범 해제
   프로필:
-    description: /프로필
+    description: /프로필 플레이어
   순위:
     description: /순위 1~X
   법전:
@@ -24,3 +24,5 @@ commands:
     description: /g - 길드 채팅을 활성화 한다.
   수리:
     description: /아이템의 속성을 무한으로 변경한다.
+  특성:
+    description: /특성 - 특성 GUI를 연다.

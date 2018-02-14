@@ -1,4 +1,26 @@
 config:
+  Initial_Stat_Point: 30
+  Reject_InHandItem:
+    - 'LEATHER_HELMET'
+    - 'GOLD_HELMET'
+    - 'CHAINMAIL_HELMET'
+    - 'IRON_HELMET'
+    - 'DIAMOND_HELMET'
+    - 'LEATHER_CHESTPLATE'
+    - 'GOLD_CHESTPLATE'
+    - 'CHAINMAIL_CHESTPLATE'
+    - 'IRON_CHESTPLATE'
+    - 'DIAMOND_CHESTPLATE'
+    - 'LEATHER_LEGGINGS'
+    - 'GOLD_LEGGINGS'
+    - 'CHAINMAIL_LEGGINGS'
+    - 'IRON_LEGGINGS'
+    - 'DIAMOND_LEGGINGS'
+    - 'LEATHER_BOOTS'
+    - 'GOLD_BOOTS'
+    - 'CHAINMAIL_BOOTS'
+    - 'IRON_BOOTS'
+    - 'DIAMOND_BOOTS'
   SpawnLocation: world,111,222,333
   ArcadeJumpLocation: 35,72,-21:70,140,50
   Law:
@@ -70,3 +92,4 @@ config:
     - '§b▶ §f당신은 현재 상위 <RankingPercentString>% 유저 입니다.'
     
     - §b▶ §f이때까지 §4<CompititionWinCount>§f명의 점수를 떨어트렸습니다!
+

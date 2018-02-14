@@ -2,11 +2,14 @@ package com.Moon_Eclipse.ArenaMatch;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.configuration.Configuration;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -19,13 +22,74 @@ import com.Moon_Eclipse.MCMANYtitle.*;
 import com.Moon_eclipse.EclipseLib.LibMain;
 public class PlayerProfile 
 {
+	Random rnd = new Random();
 	Configuration Profile = ArenaMatch.Profile;
 	Configuration userscore = ArenaMatch.userscore;
 	Configuration stats = ArenaMatch.stats;
+	Configuration AttributeGUI = ArenaMatch.AttributeGUI;
 	
 	Economy vault = ArenaMatch.getPluginEconomy();
 	
 	
+	// 특성을 찍거나 보기위한 GUi 제작
+	public Inventory CreateAttributeGUI(Player p)
+	{
+		ItemStack item = new ItemStack(0);
+		// 스탯은 userscore에 저장하며, 0:0:0:0:0:0:0 과 같은 형태를 사용한다.
+		// 왼쪽부터 검,도끼,활,모든 데미지 증가, 피해감소,생명력,피해무시 이다.
+		Inventory inv = Bukkit.createInventory(null, 27, "§b" + p.getName() + "님의 특성");
+		
+		String Attribute_data = userscore.getString("userscore." + p.getName() + ".Attributes");
+	
+		int[] Attributes_integer = this.get_Attribute_Data(Attribute_data);
+		
+		int Attribute_Point =  userscore.getInt("userscore." + p.getName() + ".Attribute_Point");
+		
+		for(int i = 0 ; i < 27 ; i++)
+		{
+			int typeId = AttributeGUI.getInt("AttributeGUI." + i + ".id");
+			int damage = AttributeGUI.getInt("AttributeGUI." + i + ".meta");
+			String name = AttributeGUI.getString("AttributeGUI." + i + ".name");
+			if(name == null)
+			{
+				name = "";
+			}
+			else
+			{
+				name = name.replaceAll("<playername>", p.getName());
+			}
+			List<String> lore = AttributeGUI.getStringList("AttributeGUI." + i + ".lore");
+			List<String> enchants = new ArrayList<String>();
+			if(lore == null || lore.isEmpty())
+			{
+				lore = new ArrayList<String>();
+			}
+			
+			
+			for(int c = 0 ; c < 7 ; c++)
+			{
+				String Usedkey = "<Usedpoint" + c + ">";
+				String Ablekey = "<AblePoint" + c + ">";
+				lore = ArenaMatch.ChangeString(Usedkey, Attributes_integer[c]+"", lore);
+				lore = ArenaMatch.ChangeString(Ablekey, (10-Attributes_integer[c])+"", lore);
+			}
+			
+			lore = ArenaMatch.ChangeString("<RemainPoint>", Attribute_Point+"", lore);
+			
+			item = LibMain.createItem(typeId, damage, 1, name, lore, "", enchants);
+			inv.setItem(i, item);
+			
+			switch(i)
+			{
+			case 4:
+
+				item = LibMain.createItem(typeId, damage, 1, name, this.get_Attribute_lore(Attributes_integer), "", enchants);
+				
+				inv.setItem(i, item);
+			}
+		}
+		return inv;
+	}
 	public Inventory CreateProfile(Player p) 
 	{
 		ItemStack item = new ItemStack(0);
@@ -63,7 +127,7 @@ public class PlayerProfile
 			lore = ArenaMatch.ChangeString("<CompititionWinCount>", userscore.getInt("userscore." + p.getName() + ".WinCount")+"", lore);
 			lore = ArenaMatch.ChangeString("<CompititionPoint>", userscore.getInt("userscore." + p.getName() + ".Score")+"", lore);
 			lore = ArenaMatch.ChangeString("<RankingPercentString>", ArenaMatch.get_User_Per_Score(p)+"", lore);
-			
+			lore = ArenaMatch.ChangeString("<playername>", p.getName(), lore);
 			try {
 				lore = ArenaMatch.ChangeString("<money>", (int) vault.getMoney(p.getName())+"", lore);
 			} catch (UserDoesNotExistException e) {
@@ -165,39 +229,7 @@ public class PlayerProfile
 		}
 		return inv;
 	}
-	
-	/*
-	&f
-	&f〔 &b이동 속도: &d@% &f〕
-	&f
-	&a▶ &c공격
-	&f( &e추가 피해: &d+@ - +@ &f)
-	&f( &c방어 무시 피해: &d+@ &f)
-	&f( &4치명타 확률: &d+@% &f)
-	&f( &4치명타 피해: &d+@% &f) - 기본 50%
-	&f( &6생명력 흡수: &d+@% &f)
-	&f( &c플레이어 추가 피해: &d+@ - +@ &f)
-	&f( &c몬스터 피해: &d+@ &f)
-	&f
-	&a▶ &3방어
-	&f( &3피해 감소: &d+@% &f)
-	&f( &a추가 생명력: &d+@ &f) - 기본 100
-	&f( &a생명력 재생: &d+@% &f)
-	&f( &6공격 회피: &d+@% &f)
-	&f( &3피해 무시: &d+@ &f)
-	&f( &3플레이어 피해 무시: &d+@ &f)
-	&f( &3몬스터 피해 무시: &d+@ &f)
-	&f( &3화살 피해 무시: &d+@ &f)
-	&f( &6피해 반사: &d+@% &f)
-	&f
-	&a▶ &2상태이상
-	&f( &c화상: &d+@% &f)
-	&f( &9빙결: &d+@% &f)
-	&f( &2중독: &d+@% &f)
-	&f( &7위더: &d+@% &f)
-	&f( &8실명: &d+@% &f)
-	&f( &5영혼 약탈: &d+@% &f)
-	*/
+
 	public List<String> EquipStat(LivingEntity Entity)
 	{
 		List<String> StatLore = new ArrayList<String>();
@@ -205,6 +237,10 @@ public class PlayerProfile
 		for(int i = 0 ; i > StatInfo.length ; i++)
 		{
 			StatInfo[i] = 0;
+			if(i == 12)
+			{
+				StatInfo[i] = 50.0d;
+			}
 		}
 		
 		/*
@@ -242,7 +278,9 @@ public class PlayerProfile
 		 * 스탯이름            단일     범위
 		 * 
 		 * 이동 속도		0 , 1 - 2
+		 * 
 		 * -> 공격
+		 * 
 		 * 추가 피해		3 , 4 - 5
 		 * 방어 무시		6 , 7 - 8
 		 * 치명타 확률		9 , 10 - 11
@@ -250,12 +288,14 @@ public class PlayerProfile
 		 * 생명력 흡수		15 , 16 - 17
 		 * 플레이어 추가 피해	18 , 19 - 20
 		 * 몬스터 피해		21 , 22 - 23   
+		 * 
 		 * -> 방어    
-		 * 피해 감소		24 , 25 - 26
+		 * 
+		 * 모든 피해 감소	24 , 25 - 26
 		 * 추가 생명력		27 , 28 - 29
 		 * 생명력 재생		30 , 31 - 32
 		 * 공격 회피		33 , 34 - 35
-		 * 피해 무시		36 , 37 - 38
+		 * 모든 피해 무시	36 , 37 - 38
 		 * 피해 반사		39 , 40 - 41
 		 * 플레이어 피해 무시 42 , 43 - 44
 		 * 몬스터 피해 무시  	45 , 46 - 47
@@ -269,6 +309,10 @@ public class PlayerProfile
 		 * 위더	 		60 , 61 - 62
 		 * 실명 			63 , 64 - 65
 		 * 영혼 약탈 		66 , 67 - 68
+		 * 
+		 *  -> 추가
+		 * 몬스터 피해 감소 	69 , 70 - 71
+		 * 
 		*/
 		//-----------------------------------------------------------
 
@@ -283,36 +327,37 @@ public class PlayerProfile
 		
 		//스탯을 프로필에 직접 추가함
 		StatLore.add("   ");
-		StatLore = MurgeProfileStatLore(StatLore,"   §f• §b이동 속도: §d", StatInfo[0], StatInfo[1], StatInfo[2],true, 0.0d);
-		//stats.add("§f• §b이동 속도: §d" + PlusMinus(StatInfo[0], false));
+		StatLore = MurgeProfileStatLore(StatLore,"      §f* §b이동 속도: §d", StatInfo[0], StatInfo[1], StatInfo[2],true, 0.0d);
+		//stats.add("§f* §b이동 속도: §d" + PlusMinus(StatInfo[0], false));
 		StatLore.add("   ");	
 		
 		//stats.add("§f〔 §b이동 속도: §d" + PlusMinus(StatInfo[0], false) + "% §f〕");
 		
 		StatLore.add("   §f");
 		StatLore.add("   §a▶ §c공격");
-		StatLore = MurgeProfileStatLore(StatLore,"   §f• §e모든 피해 : §d", StatInfo[3], StatInfo[4], StatInfo[5],false, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore,"   §f• §c방어 무시 피해: §d", StatInfo[6], StatInfo[7], StatInfo[8],false, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore,"   §f• §4치명타 확률: §d", StatInfo[9], StatInfo[10], StatInfo[11],true, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore,"   §f• §4치명타 피해: §d ", StatInfo[12], StatInfo[13], StatInfo[14],true, 50.0d);
-		StatLore = MurgeProfileStatLore(StatLore,"   §f• §6생명력 흡수: §d", StatInfo[15], StatInfo[16], StatInfo[17], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore,"      §f* §e모든 피해 : §d", StatInfo[3], StatInfo[4], StatInfo[5],false, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore,"      §f* §c방어 무시 피해 : §d", StatInfo[6], StatInfo[7], StatInfo[8],false, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore,"      §f* §4치명타 확률 : §d", StatInfo[9], StatInfo[10], StatInfo[11],true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore,"      §f* §4치명타 피해 : §d50.0 ", StatInfo[12], StatInfo[13], StatInfo[14],true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore,"      §f* §6생명력 흡수 : §d", StatInfo[15], StatInfo[16], StatInfo[17], true, 0.0d);
 
-		StatLore = MurgeProfileStatLore(StatLore, "   §f• §c플레이어 피해: §d", StatInfo[18], StatInfo[19], StatInfo[20], false, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "   §f• §c몬스터 피해: §d", StatInfo[21], StatInfo[22], StatInfo[23], false, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "      §f* §e플레이어 피해 : §d", StatInfo[18], StatInfo[19], StatInfo[20], false, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "      §f* §e몬스터 피해 : §d", StatInfo[21], StatInfo[22], StatInfo[23], false, 0.0d);
 
 		
 		StatLore.add("   §f");
 		StatLore.add("   §a▶ §3방어");
 		
-		StatLore = MurgeProfileStatLore(StatLore, "   §f• §3피해 감소: §d", StatInfo[24], StatInfo[25], StatInfo[26], true, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "   §f• §a생명력: §d100 ", StatInfo[27], StatInfo[28], StatInfo[29], false, 100.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "   §f• §a생명력 재생: §d", StatInfo[30], StatInfo[31], StatInfo[32], true, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "   §f• §6공격 회피: §d", StatInfo[33], StatInfo[34], StatInfo[35], true, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "   §f• §3피해 무시: §d", StatInfo[36], StatInfo[37], StatInfo[38], false, 0.0d);  
-		StatLore = MurgeProfileStatLore(StatLore, "   §f• §6피해 반사: §d", StatInfo[39], StatInfo[40], StatInfo[41], true, 0.0d);  
-		StatLore = MurgeProfileStatLore(StatLore, "   §f• §3플레이어 피해 무시: §d", StatInfo[42], StatInfo[43], StatInfo[44], false, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "   §f• §3몬스터 피해 무시: §d", StatInfo[45], StatInfo[46], StatInfo[47], false, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "   §f• §3화살 피해 무시: §d", StatInfo[48], StatInfo[49], StatInfo[50], false, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "      §f* §3모든 피해 감소 : §d", StatInfo[24], StatInfo[25], StatInfo[26], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "      §f* §3몬스터 피해 감소 : §d", StatInfo[69], StatInfo[70], StatInfo[71], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "      §f* §a생명력 : §d100 ", StatInfo[27], StatInfo[28], StatInfo[29], false, 0d);
+		StatLore = MurgeProfileStatLore(StatLore, "      §f* §a생명력 재생 : §d", StatInfo[30], StatInfo[31], StatInfo[32], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "      §f* §6공격 회피 : §d", StatInfo[33], StatInfo[34], StatInfo[35], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "      §f* §3모든 피해 무시 : §d", StatInfo[36], StatInfo[37], StatInfo[38], false, 0.0d);  
+		StatLore = MurgeProfileStatLore(StatLore, "      §f* §6피해 반사 : §d", StatInfo[39], StatInfo[40], StatInfo[41], true, 0.0d);  
+		StatLore = MurgeProfileStatLore(StatLore, "      §f* §3플레이어 피해 무시 : §d", StatInfo[42], StatInfo[43], StatInfo[44], false, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "      §f* §3몬스터 피해 무시 : §d", StatInfo[45], StatInfo[46], StatInfo[47], false, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "      §f* §3화살 피해 무시 : §d", StatInfo[48], StatInfo[49], StatInfo[50], false, 0.0d);
 
 		
 
@@ -320,12 +365,12 @@ public class PlayerProfile
 		StatLore.add("   §f");
 		StatLore.add("   §a▶ §2상태이상");
 		
-		StatLore = MurgeProfileStatLore(StatLore, "   §f• §c화상: §d", StatInfo[51], StatInfo[52], StatInfo[53], true, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "   §f• §c빙결: §d", StatInfo[54], StatInfo[55], StatInfo[56], true, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "   §f• §c중독: §d", StatInfo[57], StatInfo[58], StatInfo[59], true, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "   §f• §c위더: §d", StatInfo[60], StatInfo[61], StatInfo[62], true, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "   §f• §c실명: §d", StatInfo[63], StatInfo[64], StatInfo[65], true, 0.0d);
-		StatLore = MurgeProfileStatLore(StatLore, "   §f• §5영혼 약탈: §d", StatInfo[66], StatInfo[67], StatInfo[68], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "      §f* §c화상 : §d", StatInfo[51], StatInfo[52], StatInfo[53], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "      §f* §c빙결 : §d", StatInfo[54], StatInfo[55], StatInfo[56], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "      §f* §c중독 : §d", StatInfo[57], StatInfo[58], StatInfo[59], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "      §f* §c위더 : §d", StatInfo[60], StatInfo[61], StatInfo[62], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "      §f* §c실명 : §d", StatInfo[63], StatInfo[64], StatInfo[65], true, 0.0d);
+		StatLore = MurgeProfileStatLore(StatLore, "      §f* §5영혼 약탈 : §d", StatInfo[66], StatInfo[67], StatInfo[68], true, 0.0d);
 
 		return StatLore;
 	}
@@ -338,6 +383,14 @@ public class PlayerProfile
 		ItemStack Leggings = Entity.getEquipment().getLeggings();
 		ItemStack Boots = Entity.getEquipment().getBoots();
 		
+		if(IsthisRejectHandItem(LeftHand))
+		{
+			LeftHand.setTypeId(0);
+		}
+		if(IsthisRejectHandItem(RightHand))
+		{
+			RightHand.setTypeId(0);
+		}
 		if(!(RightHand.getTypeId() == 0))
 		{
 			if(RightHand.hasItemMeta())
@@ -448,7 +501,7 @@ public class PlayerProfile
 				s = "+"+d;
 			}
 		}
-		return s.replaceAll("\\+", "+ ").replaceAll("\\-", "- ");
+		return s.replaceAll("\\+", "+").replaceAll("\\-", "-");
 	}
 	public double[] StatCalculator(List<String> lores, double[] StatInfo, boolean isOffHand)
 	{
@@ -505,7 +558,7 @@ public class PlayerProfile
 				case 6:
 					if(!isOffHand)
 					{
-						StatInfo = LoreContainString(StatInfo, lore, 18, 19, 29, false);
+						StatInfo = LoreContainString(StatInfo, lore, 18, 19, 20, false);
 					}
 					break;
 				case 7:
@@ -537,7 +590,7 @@ public class PlayerProfile
 						StatInfo = LoreContainString(StatInfo, lore, 42, 43, 44, true);
 					break;
 				case 15:
-						StatInfo = LoreContainString(StatInfo, lore, 45, 46, 47, true);
+						StatInfo = LoreContainString(StatInfo, lore, 45, 46, 47, false);
 					break;
 				case 16:
 						StatInfo = LoreContainString(StatInfo, lore, 48, 49, 50, true);
@@ -560,6 +613,9 @@ public class PlayerProfile
 				case 22:
 						StatInfo = LoreContainString(StatInfo, lore, 66, 67, 68, false);
 					break;
+				case 23:
+						StatInfo = LoreContainString(StatInfo, lore, 69, 70, 71, true);
+					break;
 				}
 			}
 		}
@@ -572,7 +628,7 @@ public class PlayerProfile
 		if(s.contains(":"))
 		{
 			String[] split = s.split(":");
-			String statname = split[0].substring(split[0].indexOf("⦁")+2,split[0].length()-1 );
+			String statname = split[0].substring(split[0].indexOf("*")+2,split[0].length()-1 );
 			// 읽어들인 스탯의 이름으로부터 숫자를 구함. 이후에 스탯 배열을 참고할때 사용함.
 			
 			Set<String> keys = stats.getConfigurationSection("stats").getKeys(false);
@@ -589,13 +645,50 @@ public class PlayerProfile
 		
 		return b;
 	}
+	public int getAttributeCase(String DisplayName)
+	{
+		int b = -1;
+		
+		//(모든데미지증가 검데미지증가, 도끼데미지증가, 활데미지증가, 피해감소, 방어무시피해, 피해무시)
+		//자리:  0         1           2          3       4        5        6
+		if(DisplayName.contains("근력 강화"))
+		{
+			b = 0;
+		}
+		else if(DisplayName.contains("검술 연마"))
+		{
+			b = 1;
+		}
+		else if(DisplayName.contains("부술 연마"))
+		{
+			b = 2;
+		}
+		else if(DisplayName.contains("궁술 연마"))
+		{
+			b = 3;
+		}
+		else if(DisplayName.contains("강철 피부"))
+		{
+			b = 4;
+		}
+		else if(DisplayName.contains("방어무시피해"))
+		{
+			b = 5;
+		}
+		else if(DisplayName.contains("강인함"))
+		{
+			b = 6;
+		}
+		//Bukkit.broadcastMessage("AttributeCase: " + b);
+		return b;
+	}
 	public double nonRange(double ValueInt, String s, boolean percent)
 	{
 		//( 치명타 확률: +5.1% )
 		//rxwv
 		//0123
 		
-		String[] split = s.split(": ");
+		String[] split = s.split(" : ");
 		String ValueString = split[1];
 		if(percent)
 		{
@@ -629,7 +722,7 @@ public class PlayerProfile
 	public double[] Range(double ValueInt1, double ValueInt2, String s)
 	{
 
-		//( 추가 피해: +@ - +@ )
+		//( 추가 피해: +@ ~ +@ )
 		double[] i = new double[2];
 		String[] split = s.split(": ");
 		String[] split2 = split[1].split(" ~ ");
@@ -661,7 +754,7 @@ public class PlayerProfile
 	}
 	public List<String> MurgeProfileStatLore(List<String> StatLore, String Prefix, double Single_value, double Min_Value, double Max_value,boolean percent,double offset)
 	{
-		// prefix = "   §f• §b이동 속도 : §d";
+		// prefix = "      §f* §b이동 속도 : §d";
 		String return_string = "";
 		if((Min_Value + Max_value + Single_value) == 0d)
 		{
@@ -703,9 +796,31 @@ public class PlayerProfile
 		
 		return StatLore;
 	}
+	public double getDamageFromStats(double[] StatInfo,int Single_value, int Min_Value, int Max_value)
+	{
+		double re = 0;
+		double Single = StatInfo[Single_value];
+		double Min = StatInfo[Min_Value];
+		double Max = StatInfo[Max_value];
+		if((Min + Max + Single) == 0.0d)
+		{
+			return 0.0d;
+		}
+		else if((Min + Max) != 0.0d)
+		{
+			Min += Single;
+			Max += Single;
+			re = LibMain.getRangeRandomDouble(Min, Max);
+		}
+		else
+		{
+			re = Single;
+		}
+		return re;
+	}
 	public double[] LoreContainString(double[] StatInfo, String lore, int Single_value, int Min_Value, int Max_value, boolean percent)
 	{
-		if(lore.contains("~"))
+		if(lore.contains(" ~ "))
 		{
 			double[] ranges = this.Range(StatInfo[Min_Value], StatInfo[Max_value], lore);
 			StatInfo[Min_Value] = ranges[0];
@@ -718,5 +833,325 @@ public class PlayerProfile
 		
 		return StatInfo;
 		
+	}
+	public boolean IsthisRejectHandItem(ItemStack is)
+	{
+		boolean re = false;
+		List<String> RejectList = ArenaMatch.c.getStringList("config.Reject_InHandItem");
+		
+		for(String list : RejectList)
+		{
+			Material target = is.getType();
+			Material m = Material.getMaterial(list);
+			if(target == m)
+			{
+				re = true;
+			}
+		}
+		
+		return re;
+	}
+	public List<String> get_Attribute_lore(int[] Attributes_integer)
+	{
+		List<String> re = new ArrayList<String>();
+		
+		re.add("§4근력 강화§7: " + Attributes_integer[0]);
+		re.add("§c검술 연마: " + Attributes_integer[1]);
+		re.add("§c부술 연마: " + Attributes_integer[2]);
+		re.add("§c궁술 연마: " + Attributes_integer[3]);
+		re.add("§3강철 피부: " + Attributes_integer[4]);
+		re.add("§방어무시피해: " + Attributes_integer[5]);
+		re.add("§6강인함: " + Attributes_integer[6]);
+		return re;
+	}
+	public int[] get_Attribute_Data(String Attribute_data)
+	{
+		// 각각의 스탯정보를 나눠서 저장함
+		String[] Attributes = Attribute_data.split(":");
+				
+		//스탯의 숫자 정보를 저장할 버퍼를 생성
+		int[] Attributes_integer = new int[Attributes.length];
+		
+		//자리에 맞게 저장하기위한 반복변수를 선언 
+		int i = 0;
+				
+		//스탯의 정보를 숫자로 변환함
+		for(String Attribute : Attributes)
+		{
+			Attributes_integer[i] = Integer.parseInt(Attribute);
+			i++;
+		}
+				
+		return Attributes_integer;
+	}
+	public String Attribute_Data_Calculator(String Attribute_data, String DisplayName, int Attribute_Point, int type, Player p, boolean isShift)
+	{
+		// change_point 만큼 스탯을 변화시킴.
+		
+		//(모든데미지증가 검데미지증가, 도끼데미지증가, 활데미지증가, 피해감소, 방어무시피해, 피해무시)
+		//자리:  0         1           2          3       4        5        6
+		
+		// type 0 = 증가, 1 = 감소,  --- 증/감 시킬 스탯의 양은 이벤트에서 직접 연산해서 넘겨줌
+		
+		// 반환할 데이터를 저장할 버퍼를 선언
+		String re = "";
+				
+		// 클릭한 아이템의 이름에 해당하는 스탯을 얻어옴
+		int AttributeCase = this.getAttributeCase(DisplayName);
+		
+		int[] Attributes_integer = get_Attribute_Data(Attribute_data);
+				
+		int Max_Point = 10;
+		int Min_Point = 0;
+		
+		int change_point = 1;
+		
+		if(isShift == true)
+		{
+			change_point = Attribute_Point;
+			if(type == 1)
+			{
+				change_point = Attributes_integer[AttributeCase];
+			}
+		}
+		
+		
+		// 이벤트 타입에 맞는 처리를 하기위해 타입에 맞게 분기
+		switch(type)
+		{
+			//type의 값이 각각의 정수와 같다면
+			case 0:
+				switch(AttributeCase)
+				{
+				case 0:
+					Attributes_integer[0] = AttributeChanger(type,Attribute_Point, Attributes_integer[0], Max_Point, Min_Point, change_point, p, 1, false);
+					break;
+				case 1:
+					Attributes_integer[1] = AttributeChanger(type,Attribute_Point, Attributes_integer[1], Max_Point, Min_Point, change_point, p, 1, false);
+					break;
+				case 2:
+					Attributes_integer[2] = AttributeChanger(type,Attribute_Point, Attributes_integer[2], Max_Point, Min_Point, change_point, p, 1, false);
+					break;
+				case 3:
+					Attributes_integer[3] = AttributeChanger(type,Attribute_Point, Attributes_integer[3], Max_Point, Min_Point, change_point, p, 1, false);
+					break;
+				case 4:
+					Attributes_integer[4] = AttributeChanger(type,Attribute_Point, Attributes_integer[4], Max_Point, Min_Point, change_point, p, 1, false);
+					break;
+				case 5:
+					Attributes_integer[5] = AttributeChanger(type,Attribute_Point, Attributes_integer[5], Max_Point, Min_Point, change_point, p, 1, true);
+					break;
+				case 6:
+					Attributes_integer[6] = AttributeChanger(type,Attribute_Point, Attributes_integer[6], Max_Point, Min_Point, change_point, p, 3, false);
+					break;
+				}
+			break;
+			
+			case 1:
+				switch(AttributeCase)
+				{
+				case 0:
+					Attributes_integer[0] = AttributeChanger(type,Attribute_Point, Attributes_integer[0], Max_Point, Min_Point, change_point, p, 1, false);
+					break;
+				case 1:
+					Attributes_integer[1] = AttributeChanger(type,Attribute_Point, Attributes_integer[1], Max_Point, Min_Point, change_point, p, 1, false);
+					break;
+				case 2:
+					Attributes_integer[2] = AttributeChanger(type,Attribute_Point, Attributes_integer[2], Max_Point, Min_Point, change_point, p, 1, false);
+					break;
+				case 3:
+					Attributes_integer[3] = AttributeChanger(type,Attribute_Point, Attributes_integer[3], Max_Point, Min_Point, change_point, p, 1, false);
+					break;
+				case 4:
+					Attributes_integer[4] = AttributeChanger(type,Attribute_Point, Attributes_integer[4], Max_Point, Min_Point, change_point, p, 1, false);
+					break;
+				case 5:
+					Attributes_integer[5] = AttributeChanger(type,Attribute_Point, Attributes_integer[5], Max_Point, Min_Point, change_point, p, 1, true);
+					break;
+				case 6:
+					Attributes_integer[6] = AttributeChanger(type,Attribute_Point, Attributes_integer[6], Max_Point, Min_Point, change_point, p, 3, false);
+					break;
+				}
+			break;
+		}
+		
+		// Attributes_integer를 이용해 반환 문자열을 생성. 반환 문자열은 스탯의 정보를 갖는것임.
+		// 0:1:2:3:4:5:6
+		for(int b = 0 ; b < Attributes_integer.length ; b++)
+		{
+			re += Attributes_integer[b] ;
+			if(b != Attributes_integer.length -1)
+			{
+				re += ":";
+			}		
+		}
+		//Bukkit.broadcastMessage("Attribute_Data: " + re);
+		return re;
+	}
+	public boolean isthisMax(int a, int MAX, Player p)
+	{
+		boolean re = true;
+		if(a < MAX)
+		{
+			re = false;
+		}
+		else
+		{
+			p.sendMessage("§b[마인아레나] §e더 이상 강화할 수 없습니다.");
+		}
+		return re;
+	}
+	public boolean isthisMin(int a, int MIN, Player p)
+	{
+		boolean re = true;
+		if(a > MIN)
+		{
+			re = false;
+		}
+		else
+		{
+			p.sendMessage("§b[마인아레나] §e더 이상 약화할 수 없습니다.");
+		}
+		return re;
+	}
+	public int AttributeChanger(int type, int Attribute_point, int Attributes_integer, int Max_Point, int Min_Point, int change_point, Player p, int offset, boolean isthisHealth)
+	{
+		int re = Attributes_integer;
+		if(type == 0)
+		{			
+			if(!isthisMax(Attributes_integer, Max_Point, p))
+			{
+				//Bukkit.broadcastMessage("특성 증가 스탯 최대치 통과");
+				//Bukkit.broadcastMessage("change_point: " + change_point);
+				
+				Attributes_integer += change_point;
+				//Bukkit.broadcastMessage("Attributes_integer: " + Attributes_integer);
+				
+				Attribute_point -= (change_point * offset);
+				//Bukkit.broadcastMessage("Attribute_point: " + Attribute_point);
+				
+				if(Attributes_integer > Max_Point)
+				{
+					//Bukkit.broadcastMessage("처리 이후 값이 최대치를 넘은 경우");
+					
+					int remain = Attributes_integer - (Max_Point * offset);
+					//Bukkit.broadcastMessage("remain: " + remain);
+					
+					Attributes_integer = Max_Point;
+					//Bukkit.broadcastMessage("Attributes_integer: " + Attributes_integer);
+					
+					Attribute_point = remain;
+					//Bukkit.broadcastMessage("Attribute_point: " + Attribute_point);
+					
+					change_point = Max_Point - re;
+				}
+				userscore.set("userscore." + p.getName() + ".Attribute_Point", Attribute_point);
+			}
+		}
+		else if(type == 1)
+		{
+			//Bukkit.broadcastMessage("in change_point: " + change_point);
+			if(!isthisMin(Attributes_integer, Min_Point, p))
+			{
+				//Bukkit.broadcastMessage("특성 감소 스탯 최소치 통과");
+				
+				Attributes_integer -= change_point;
+				
+				change_point = change_point * offset;
+				 
+				Attribute_point += (change_point);
+				
+				if(Attributes_integer < Min_Point)
+				{
+					int remain = Attributes_integer * offset;
+					Attributes_integer = Min_Point;
+					Attribute_point += remain;
+					userscore.set("userscore." + p.getName() + ".Attribute_Point", Attribute_point);
+					re = Attributes_integer;
+										
+					return re;
+				}				
+				userscore.set("userscore." + p.getName() + ".Attribute_Point", Attribute_point);
+			}
+		}
+		re = Attributes_integer;
+		return re;
+	}
+	public double get_Player_Attribute_increse_damage(Player p, Entity Target, double damage)
+	{
+		String Attribute_data = userscore.getString("userscore." + p.getName() + ".Attributes");
+		
+		int[] Attribute_int = get_Attribute_Data(Attribute_data);
+		
+		ItemStack RightHand = p.getEquipment().getItemInHand();
+		ItemStack LeftHand = p.getEquipment().getItemInOffHand();
+		
+		//(모든데미지증가 검데미지증가, 도끼데미지증가, 활데미지증가, 피해감소, 방어 무시 피해, 피해무시)
+		//자리:  0         1           2          3       4      5      6
+		
+		//생명력 한번 찍을때마다 0.5 오름 나머지는 0.1
+		
+		if(RightHand.getTypeId() == 267 || RightHand.getTypeId() == 268 || RightHand.getTypeId() == 272 || RightHand.getTypeId() == 276 || RightHand.getTypeId() == 283)
+		{
+			damage +=0.1 * Attribute_int[1];
+		}
+		
+		if(RightHand.getTypeId() == 258 || RightHand.getTypeId() == 271 || RightHand.getTypeId() == 275 || RightHand.getTypeId() == 279 || RightHand.getTypeId() == 286)
+		{
+			damage +=0.1 * Attribute_int[2];
+		}
+		
+		if(RightHand.getTypeId() == 261)
+		{
+			damage +=0.1 * Attribute_int[3];
+		}
+		if(LeftHand.getTypeId() == 267 || LeftHand.getTypeId() == 268 || LeftHand.getTypeId() == 272 || LeftHand.getTypeId() == 276 || LeftHand.getTypeId() == 283)
+		{
+			damage +=0.1 * Attribute_int[1];
+		}
+		
+		if(LeftHand.getTypeId() == 258 || LeftHand.getTypeId() == 271 || LeftHand.getTypeId() == 275 || LeftHand.getTypeId() == 279 || LeftHand.getTypeId() == 286)
+		{
+			damage +=0.1 * Attribute_int[2];
+		}
+		
+		if(LeftHand.getTypeId() == 261)
+		{
+			damage +=0.1 * Attribute_int[3];
+		}		
+		
+		damage += 0.1 * Attribute_int[0];
+		
+		double Ignore_Shield_Damage = (double) Attribute_int[5];
+		if(Ignore_Shield_Damage != 0.0d)
+		{
+			((LivingEntity) Target).damage(Ignore_Shield_Damage);
+		}
+		return damage;
+	}
+	public double get_Player_Attribute_decrese_damage( Player target, double damage)
+	{
+		String Attribute_data = userscore.getString("userscore." + target.getName() + ".Attributes");
+		int[] Attribute_int = get_Attribute_Data(Attribute_data);
+		
+		damage -= 0.1 * Attribute_int[4];
+		damage -= 0.1 * Attribute_int[6];
+		
+		return damage;
+	}
+	public boolean CanPlayerActivateCriticalDamage(double percent)
+	{
+		boolean re = false;
+
+		int random = rnd.nextInt(99) + 1;
+		double per = ((double)random / (double)100) * 100;
+		//Bukkit.broadcastMessage(per + " + per");
+		//Bukkit.broadcastMessage(percent + " + percent");
+		if(per <= percent)
+		{
+			re = true;
+		}
+		//Bukkit.broadcastMessage("CanPlayerActivateCriticalDamage return: " + re);
+		return re;
 	}
 }

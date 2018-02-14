@@ -7,7 +7,7 @@ stats:
   absorption_life: "생명력 흡수"
   player_damage: "플레이어 피해"
   monster_damage: "몬스터 피해"
-  reduce_damage: "피해 감소"
+  reduce_damage: "모든 피해 감소"
   additional_life: "추가 생명력"
   regenerate_life: "생명력 재생"
   avoid_damage: "공격 회피"
@@ -22,4 +22,5 @@ stats:
   ignore_player_damage: "플레이어 피해 무시"
   ignore_monster_damage: "몬스터 피해 무시"
   ignore_arrow_damage: "화상 피해 무시"
+  Monster_Damage_reduce: "몬스터 피해 감소"
   

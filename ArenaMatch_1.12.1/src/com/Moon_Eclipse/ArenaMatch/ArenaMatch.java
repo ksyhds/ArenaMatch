@@ -24,10 +24,14 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Creeper;
+import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
@@ -45,12 +49,16 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageModifier;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
@@ -105,30 +113,42 @@ import com.Moon_Eclipse.MCMANYtitle.*;
 public class ArenaMatch extends JavaPlugin implements Listener
 {
 
-	File UserScore;
 	static FileConfiguration userscore;
+	File UserScore;
+	
 	FileConfiguration submap;
 	File SubMap;
+	
 	FileConfiguration title;
 	File TitleFile;
+	
 	static FileConfiguration Profile;
 	File ProfileFile;
+	
 	static FileConfiguration party;
 	File PartyFile;
+	
 	static FileConfiguration guild;
 	File GuildFile;
+	
 	static FileConfiguration tier;
 	File TierFile;
+	
 	static FileConfiguration stats;
 	File StatsFile;
 	
-	Configuration c;
+	static FileConfiguration AttributeGUI;
+	File AttributeGUIFile;
+	
+	static Configuration c;
 	
 	public static final String VAULT = "Vault";
     static Economy vault = null;
     boolean vaultLoaded = false;
     
     WrapperManager ArenaPlayerManager;
+    
+    boolean Debug = false;
     
 	HashMap<String,String> match = new HashMap<String,String>();
 	HashMap<String,String> usemap = new HashMap<String,String>();
@@ -166,7 +186,8 @@ public class ArenaMatch extends JavaPlugin implements Listener
 	ArrayList<String> DefaultIconLore = new ArrayList<String>();
 	ArrayList<String> CompititionIconLore = new ArrayList<String>();
 	
-	
+	//스탯 포인트의 기본치를 저장할 공간을 선언
+	int Initial_Stat_Point = 0;
 	
 	HashMap<Integer, List<String>> 기본 = new HashMap<Integer, List<String>>();
 	HashMap<Integer, List<String>> 정글 = new HashMap<Integer, List<String>>();
@@ -194,6 +215,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		this.saveDefaultGuildFile();
 		this.saveDefaultTierFile();
 		this.saveDefaultStatsFile();
+		this.saveDefaultAttributeGUIFile();
 		
 		c = this.getConfig();
 		this.GetGUIIcon();
@@ -223,11 +245,18 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		StatsFile = new File(getDataFolder(), "stats.yml");
 		stats = YamlConfiguration.loadConfiguration(StatsFile);
 		
+		AttributeGUIFile = new File(getDataFolder(), "AttributeGUI.yml");
+		AttributeGUI = YamlConfiguration.loadConfiguration(AttributeGUIFile);
+		
 		getEconomy();
 		InitializeArena();
 		this.MainTimer();
 		
 		pp = new PlayerProfile();
+		
+		// 지급할 스탯 포인트의 저장소를 초기화
+		Initial_Stat_Point = c.getInt("config.Initial_Stat_Point");
+		
 	}
 	public void onDisable()
 	{
@@ -257,12 +286,14 @@ public class ArenaMatch extends JavaPlugin implements Listener
 						p.sendMessage("/Arena setsubmap 아레나이름 서브맵이름");
 						p.sendMessage("/Arena initial 플레이어이름 - 플레이어 플긴값초기화");
 						p.sendMessage("/Arena task 플레이어이름 - 플레이어 GUI 버킷 런에이블 초기화");
-						p.sendMessage("/Arena debug 플레이어이름 - 플레이어 플긴값 보기");
+						p.sendMessage("/Arena debug_playervalue 플레이어이름 - 플레이어 플긴값 보기");
 						p.sendMessage("/Arena delete  - 손에 든 아이템 속성 제거");
 						p.sendMessage("/Arena alldelete - 서버에 접속중인 전인원의 인벤토리안에 있는 아이템 속성 제거");
 						p.sendMessage("/Arena kill 이름 - 대상의 체력을 0으로 만들어 사망하게함.");
 						p.sendMessage("/Arena setscore 이름 점수- 대상의 경쟁전 점수를 수정합니다.");
 						p.sendMessage("/Arena color 플레이어이름 알파벳/숫자 - 해당 플레이어의 채팅 색상을 변경");
+						p.sendMessage("/Arena glow - 자신에게 glow 이펙트 추가");
+						p.sendMessage("/Arena buy 가격(랭크포인트) 구매할아이템이름  개수 - MCGIVE의 아이템을 랭크포인트로 구매");
 						
 					}
 				}
@@ -270,9 +301,67 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				{
 					switch(args[0])
 					{
+						case "debug":
+							if(p.isOp())
+							{
+								Debug = !Debug;
+								p.sendMessage("디버그 상태를 \'" + Debug + "\' 로 변경합니다.");
+							}
+						break;
+						case "mob":
+						Location p_loc = p.getLocation();
+						Skeleton sk = (Skeleton) p.getWorld().spawnEntity(p.getLocation(), EntityType.SKELETON);
+						sk.setMaxHealth(2000D);
+		                sk.setHealth(100D);
+		                sk.setCustomName("Creeper");
+		                sk.setCustomNameVisible(true);
+		                sk.getEquipment().setItemInHand(main.get_Mcgive_Item("", "reignsword1", 1));
+		                
+						break;
+						
+						///Arena buy 가격(랭크포인트) 구매할아이템이름  개수
+						//  cmd	  0       1             2       3
+						case "buy":
+							if(args.length >= 4)
+							{
+								String PlayerName =  p.getName();
+								int balance = userscore.getInt("userscore." + PlayerName + ".Score");
+								int Price = Integer.parseInt(args[1]);
+								
+								if(balance >= Price)
+								{
+									
+									int remain = balance - Price;
+									String ItemName = args[2];
+									int amount = Integer.parseInt(args[3]);
+									
+									ItemStack Item = main.get_Mcgive_Item(p.getName(), ItemName, amount);
+									
+									p.getInventory().addItem(Item);
+									
+									userscore.set("userscore." + p.getName() + ".Score", remain);
+									this.modifyScoreBoard(p);
+								}
+								else
+								{
+									p.sendMessage("§b[마인아레나] §e랭크 포인트가 부족합니다.");
+								}
+							}
+							else
+							{
+								p.sendMessage("인수가 모자랍니다.");
+							}
+							
+							
+						break;
+						
+						case "glow":
+							p.setGlowing(false);
+						break;
+						
 						case "getprofile":
 							
-							double stat_array[] = new double[30];
+							double stat_array[] = new double[100];
 							stat_array = pp.getstat(p, stat_array);
 							for(int i = 0 ; i < 30 ; i ++)
 							{
@@ -338,7 +427,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 							}
 							
 						break;
-						case "debug":
+						case "debug_playervalue":
 							String[] values = getPlayerValues(args[1]);
 							for(String value : values)
 							{
@@ -391,8 +480,10 @@ public class ArenaMatch extends JavaPlugin implements Listener
 								tier = YamlConfiguration.loadConfiguration(TierFile);
 								StatsFile = new File(getDataFolder(), "stats.yml");
 								stats = YamlConfiguration.loadConfiguration(StatsFile);
-								
+								AttributeGUIFile = new File(getDataFolder(), "AttributeGUI.yml");
+								AttributeGUI = YamlConfiguration.loadConfiguration(AttributeGUIFile);
 								p.sendMessage("리로드 완료");
+								pp = new PlayerProfile();
 							}
 							else
 							{
@@ -1059,10 +1150,25 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				if(sender instanceof Player)
 				{
 					Player p = (Player) sender;
-					PlayerWhoClicked.put(p.getName(), p.getName());
-					
-					p.openInventory(pp.CreateProfile(p));
-					
+					if(args == null || args.length == 0)
+					{
+						PlayerWhoClicked.put(p.getName(), p.getName());
+						p.openInventory(pp.CreateProfile(p));
+					}
+					else
+					{
+						String TargetName = args[0];
+						if(isThisPlayerOnline(TargetName))
+						{
+							PlayerWhoClicked.put(p.getName(),TargetName);
+							Player target = Bukkit.getPlayer(TargetName);
+							p.openInventory(pp.CreateProfile(target));
+						}
+						else
+						{
+							p.sendMessage("§b[마인아레나] §e인수가 잘못되었습니다. 접속해있는 플레이어의 이름을 입력해주세요.");
+						}
+					}
 				}
 			}
 			else if(command.getName().equals("순위"))
@@ -1077,15 +1183,13 @@ public class ArenaMatch extends JavaPlugin implements Listener
 					
 					for(String key : data)
 					{
-						int score = userscore.getInt("userscore."+ key + ".Score");
+						int score = userscore.getInt("userscore."+ key + ".WinCount");
 						map.put(key, score);
 					}
 					List<String> RankList = sortByValue(map);
 					
 					int rank = 1;
 					
-					
-
 					String liststr = "null";
 					if(args.length < 1)
 					{
@@ -1105,7 +1209,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 							String text = RankList.get(titlenum - 1);
 							String ColorText = text.replace("&", "§");
 							String name = ChatColor.stripColor(text);
-							int Score = userscore.getInt("userscore." + name + ".Score");
+							int Score = map.get(name);
 							p.sendMessage("§b[§e" + titlenum + "§b]§a " + ColorText + " (" + Score + ")");
 							if((titlenum%10) == 9)
 							{
@@ -1130,6 +1234,8 @@ public class ArenaMatch extends JavaPlugin implements Listener
 								{
 									p.sendMessage("§b[마인아레나]§e 페이지의 끝입니다.");
 								}
+								/*
+								 * 18-01-28 요청에 의해 순위 표기는 삭제함.
 								for(String name2 : RankList)
 								{
 									if(name2.equals(p.getName()))
@@ -1138,6 +1244,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 									}
 									rank++;
 								}
+								*/
 								p.sendMessage("§b==============================================");
 							}
 						}
@@ -1204,6 +1311,19 @@ public class ArenaMatch extends JavaPlugin implements Listener
 					sender.sendMessage("플레이어만이 가능합니다.");
 				}
 			}
+			else if(command.getName().equals("특성"))
+			{
+				if(sender instanceof Player)
+				{
+					Player p = (Player) sender;
+					p.openInventory(pp.CreateAttributeGUI(p));
+					PlayerWhoClicked.put(p.getName(), p.getName());
+				}
+				else
+				{
+					sender.sendMessage("플레이어만이 가능합니다.");
+				}
+			}
 		}
 		else
 		{
@@ -1224,7 +1344,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		Player p = event.getPlayer(); 
 		PreviousStat.put(p.getName(), "JOIN");
 		p.getInventory().setHeldItemSlot(ran.nextInt(9));
-		p.playSound(p.getLocation(), Sound.RECORD_CHIRP, SoundCategory.RECORDS, 100000, 1);
+		//p.playSound(p.getLocation(), Sound.RECORD_CHIRP, SoundCategory.RECORDS, 100000, 1);
 		InitializeUserValues(p.getName());
 		if(!userscore.contains("userscore." + p.getName() + ".Score"))
 		{
@@ -1259,16 +1379,30 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		{
 			userscore.set("userscore." + p.getName() + ".party", '@');
 		}
+		if(!userscore.contains("userscore." + p.getName() + ".Attributes"))
+		{
+			userscore.set("userscore." + p.getName() + ".Attributes", "0:0:0:0:0:0:0");
+		}
+		if(!userscore.contains("userscore." + p.getName() + ".Attribute_Point"))
+		{
+			userscore.set("userscore." + p.getName() + ".Attribute_Point", Initial_Stat_Point);
+		}
 		UserChatColor.put(p.getName(), userscore.getString("userscore." + p.getName() + ".ChatColor"));
 		p.setGlowing(false);
 		ClearScoreBoard(p);
+		
+		//petblock을 켜기 위해서 enable3회 실행
+		Bukkit.dispatchCommand(p, " petblocks enable " + p.getName());
+		Bukkit.dispatchCommand(p, " petblocks enable " + p.getName());
+		Bukkit.dispatchCommand(p, " petblocks enable " + p.getName());
+		
 	}
 	@EventHandler
 	public void onDeath(PlayerDeathEvent event)
 	{
 		Player loser = event.getEntity().getPlayer();
 		PreviousStat.put(loser.getName(), "DEATH");
-		
+		loser.setGlowing(false);
 		if(!isDead.get(loser.getName()))
 		{
 			isDead.put(loser.getName(), true);
@@ -1315,7 +1449,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		Player p = event.getPlayer();
 		PreviousStat.put(p.getName(), "RESPAWN");
 		p.setGlowing(false);
-		RespawnTimer(p);
+		//RespawnTimer(p);
 		isDead.put(p.getName(), false);
 	}
 	@EventHandler
@@ -1394,100 +1528,12 @@ public class ArenaMatch extends JavaPlugin implements Listener
 	public void onInventoryClick(InventoryClickEvent event)
 	{
 		Player p = (Player)event.getWhoClicked();
+		
+		// 인벤토리를 구분하기위한 구분자들을 설정.
 		String InventoryTitle = "MineArena Arena Page";
 		String ProfilGUITitle = "님의 프로필";
-
-		if(event.getInventory().getTitle().contains(ProfilGUITitle) && (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR))
-		{
-			event.setCancelled(true);
-			ItemStack ClickedItem = event.getCurrentItem();
-			if(ClickedItem.hasItemMeta())
-			{
-				ItemMeta ClickedItemMeta = ClickedItem.getItemMeta();
-				if(ClickedItemMeta.hasDisplayName())
-				{
-					if(ClickedItemMeta.getDisplayName().equals("§7=== §b아이템창 보기 §7==="))
-					{
-						Player target = Bukkit.getPlayer(PlayerWhoClicked.get(p.getName()));
-						Inventory TargetInv = Bukkit.createInventory(null, 36, "§b" + target.getName() + ProfilGUITitle);
-						
-						for(ItemStack i : target.getInventory().getContents())
-						{
-							if(i != null)
-							{
-								TargetInv.addItem(i);
-							}
-						}
-						
-						p.openInventory(TargetInv);
-					}
-					if(ClickedItemMeta.getDisplayName().equals("§7=== §d친선전 신청 §7==="))
-					{
-						if(!IsinMatch.get(p.getName()))
-						{
-							if(!IsSetFriend.get(p.getName()))
-							{
-								if(p.getName().equals(PlayerWhoClicked.get(p.getName())))
-								{
-									p.sendMessage("§b[마인아레나] §e자기 자신에게 친선전을 신청할 수 없습니다!");
-								}
-								else
-								{
-									Player target = Bukkit.getPlayer(PlayerWhoClicked.get(p.getName()));
-									if(target.isOnline())
-									{
-										if(UserArenaState.get(p.getName()).equals(""))
-										{
-											target.sendMessage("§b[마인아레나] §e" + p.getName() + "님이 당신에게 친선전을 신청하셨습니다." + p.getName() + "님의 프로필에서 친선전 버튼을 눌러 전투 신청을 수락하세요.");
-											p.sendMessage("§b[마인아레나]§e " + target.getName() + "님에게 친선전을 신청했습니다.");
-											p.closeInventory();
-											match.put(target.getName(), p.getName());
-											UserArenaState.put(target.getName(), "FriendShip");
-											IsSetFriend.put(p.getName(), true);
-											FriendTimer(p, target);
-										}
-										else if(UserArenaState.get(p.getName()).equals("FriendShip"))
-										{
-											if(match.get(p.getName()).equals(PlayerWhoClicked.get(p.getName())))
-											{
-												match.put(target.getName(), p.getName());
-												UserArenaState.put(target.getName(), "FriendShip");
-												HashMap<Integer, List<String>> num = this.getArenaMapUseingRandomNumber();
-												MatchUp(p, num, false);
-												MatchUp(target, num, false);
-												IsSetFriend.put(target.getName(), false);
-											}
-											else
-											{
-												p.sendMessage("§b[마인아레나] §e잘못된 대상을 선택하셨습니다. 친선전 신청이 거절되었습니다.");
-												UserArenaState.put(p.getName(), "");
-												match.put(target.getName(), "");
-											}
-										}
-										else
-										{
-											p.sendMessage("§b[마인아레나] §e전투 대기중인 상태에서 친선전을 신청할 수 없습니다.");
-										}
-									}
-									else
-									{
-										p.sendMessage("§b[마인아레나] §e현재 접속하지 않은 대상입니다");
-									}
-								}
-							}
-							else
-							{
-								p.sendMessage("§b[마인아레나] §e이미 다른사람에게 친선전을 신청하셨습니다.");
-							}
-						}
-						else
-						{
-							p.sendMessage("§b[마인아레나] §e전투중에는 친선전을 신청하실 수 없습니다.");
-						}
-					}
-				}
-			}
-		}
+		String AttributeGUITitle = "님의 특성";	
+		
 		if(event.getInventory().getTitle().equalsIgnoreCase(InventoryTitle) && (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR))
 		{
 			
@@ -1585,6 +1631,218 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				}
 			}
 		}
+		else if(event.getInventory().getTitle().contains(ProfilGUITitle) && (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR))
+		{
+			event.setCancelled(true);
+			ItemStack ClickedItem = event.getCurrentItem();
+			if(ClickedItem.hasItemMeta())
+			{
+				ItemMeta ClickedItemMeta = ClickedItem.getItemMeta();
+				if(ClickedItemMeta.hasDisplayName())
+				{
+					
+					if(ClickedItemMeta.getDisplayName().equals("   §7===§5미니게임 관전§7===   "))
+					{
+						String TargetName = PlayerWhoClicked.get(p.getName());
+						String command = "mbg spectate " + TargetName;
+						Bukkit.dispatchCommand(p, command);
+					}
+					// 스탯창 열기
+					if(ClickedItemMeta.getDisplayName().equals("§7=== §4특성 §7==="))
+					{
+						//대상을 객체를 얻기위해 map에서 이름을 얻어옴
+						Player target = Bukkit.getPlayer(PlayerWhoClicked.get(p.getName()));
+						
+						//대상객체의 특성 GUI를 얻어옴
+						Inventory TargetInv = pp.CreateAttributeGUI(target);
+						
+						//대상의 특성GUI를 사용자에게 open함
+						p.openInventory(TargetInv);
+						
+						
+					}
+					if(ClickedItemMeta.getDisplayName().equals("§7=== §b아이템창 보기 §7==="))
+					{
+						Player target = Bukkit.getPlayer(PlayerWhoClicked.get(p.getName()));
+						Inventory TargetInv = Bukkit.createInventory(null, 36, "§b" + target.getName() + ProfilGUITitle);
+						
+						for(ItemStack i : target.getInventory().getContents())
+						{
+							if(i != null)
+							{
+								TargetInv.addItem(i);
+							}
+						}
+						
+						p.openInventory(TargetInv);
+					}
+					if(ClickedItemMeta.getDisplayName().equals("§7=== §d친선전 신청 §7==="))
+					{
+						if(!IsinMatch.get(p.getName()))
+						{
+							if(!IsSetFriend.get(p.getName()))
+							{
+								if(p.getName().equals(PlayerWhoClicked.get(p.getName())))
+								{
+									p.sendMessage("§b[마인아레나] §e자기 자신에게 친선전을 신청할 수 없습니다!");
+								}
+								else
+								{
+									Player target = Bukkit.getPlayer(PlayerWhoClicked.get(p.getName()));
+									if(target.isOnline())
+									{
+										if(UserArenaState.get(p.getName()).equals(""))
+										{
+											target.sendMessage("§b[마인아레나] §e" + p.getName() + "님이 당신에게 친선전을 신청하셨습니다." + p.getName() + "님의 프로필에서 친선전 버튼을 눌러 전투 신청을 수락하세요.");
+											p.sendMessage("§b[마인아레나]§e " + target.getName() + "님에게 친선전을 신청했습니다.");
+											p.closeInventory();
+											match.put(target.getName(), p.getName());
+											UserArenaState.put(target.getName(), "FriendShip");
+											IsSetFriend.put(p.getName(), true);
+											FriendTimer(p, target);
+										}
+										else if(UserArenaState.get(p.getName()).equals("FriendShip"))
+										{
+											if(match.get(p.getName()).equals(PlayerWhoClicked.get(p.getName())))
+											{
+												match.put(target.getName(), p.getName());
+												UserArenaState.put(target.getName(), "FriendShip");
+												HashMap<Integer, List<String>> num = this.getArenaMapUseingRandomNumber();
+												MatchUp(p, num, false);
+												MatchUp(target, num, false);
+												IsSetFriend.put(target.getName(), false);
+											}
+											else
+											{
+												p.sendMessage("§b[마인아레나] §e잘못된 대상을 선택하셨습니다. 친선전 신청이 거절되었습니다.");
+												UserArenaState.put(p.getName(), "");
+												match.put(target.getName(), "");
+											}
+										}
+										else
+										{
+											p.sendMessage("§b[마인아레나] §e전투 대기중인 상태에서 친선전을 신청할 수 없습니다.");
+										}
+									}
+									else
+									{
+										p.sendMessage("§b[마인아레나] §e현재 접속하지 않은 대상입니다");
+									}
+								}
+							}
+							else
+							{
+								p.sendMessage("§b[마인아레나] §e이미 다른사람에게 친선전을 신청하셨습니다.");
+							}
+						}
+						else
+						{
+							p.sendMessage("§b[마인아레나] §e전투중에는 친선전을 신청하실 수 없습니다.");
+						}
+					}
+				}
+			}
+		}	
+		// 만약 인벤토리의 이름이 "님의 특성"을 갖으면서 현재 클릭한 아이템이 null이 아니고 재료AIR가 아니라면
+		else if(event.getInventory().getTitle().contains(AttributeGUITitle) && (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR))
+		{
+			// 이벤트 발생 취소
+			event.setCancelled(true);
+			
+			// 만약 자신이 특성 페이지를 열었다면
+			if(p.getName().equals(PlayerWhoClicked.get(p.getName())))
+			{
+				//userscore에서 해당 유저의 스탯을 얻어옴
+				String Attribute_data = userscore.getString("userscore." + p.getName() + ".Attributes");
+				
+				
+				//클릭한 아이템을 얻어옴
+				ItemStack ClickedItem = event.getCurrentItem();
+				
+				// 클릭한 아이템이 메타 데이타를 갖는다면
+				if(ClickedItem.hasItemMeta())
+				{
+					// 클릭한 아이템의 데이터를 저장
+					ItemMeta ClickedItemMeta = ClickedItem.getItemMeta();
+					
+					// 메타 데이터가 특별한 이름을 갖는다면
+					if(ClickedItemMeta.hasDisplayName())
+					{
+						// 특별한 이름을 저장
+						String DisplayName = ClickedItemMeta.getDisplayName();
+						
+						//남은 스탯 포인트를 얻어옴
+						int Attribute_Point =  userscore.getInt("userscore." + p.getName() + ".Attribute_Point");
+						
+						// 만약 스탯을 다 찍어서 더이상 스탯을 변경할 수 없다면
+						
+						/*
+						일반좌클=1포인트 증가
+						일반우클=1포인트 감소
+						쉬프트좌=최대포인트까지 증가
+						쉬프트우=0포인트까지 감소
+						 */
+						
+						
+						// 이벤트의 종류에 따라 각각 다른 처리를 함
+						if(event.isShiftClick())
+						{							
+							//만약 시프트 + 좌클릭일 경우 최대까지 증가
+							if(event.isLeftClick())
+							{
+								if(!(Attribute_Point <= 0))
+								{
+									//type 0 = 증가, 1 = 감소
+									userscore.set("userscore." + p.getName() + ".Attributes", pp.Attribute_Data_Calculator(Attribute_data, DisplayName, Attribute_Point, 0, p, true));
+								}
+								else
+								{
+									p.sendMessage("§b[마인아레나] §e포인트가 부족합니다.");
+								}								
+							}
+							//만약 시프트 + 우클릭일 경우 0까지 감소
+							else if(event.isRightClick())
+							{				
+								userscore.set("userscore." + p.getName() + ".Attributes", pp.Attribute_Data_Calculator(Attribute_data, DisplayName, Attribute_Point, 1, p, true));
+							}
+							
+						}
+						// 시프트 클릭이 아니고
+						else
+						{
+							// 좌클릭일 경우
+							if(event.isLeftClick())
+							{
+								if(!(Attribute_Point <= 0))
+								{
+									userscore.set("userscore." + p.getName() + ".Attributes", pp.Attribute_Data_Calculator(Attribute_data, DisplayName, Attribute_Point, 0, p, false));									
+								}
+								else
+								{
+									p.sendMessage("§b[마인아레나] §e포인트가 부족합니다.");
+								}
+							}
+							// 우클릭일 경우
+							else if(event.isRightClick())
+							{
+								userscore.set("userscore." + p.getName() + ".Attributes", pp.Attribute_Data_Calculator(Attribute_data, DisplayName, Attribute_Point, 1, p, false));	
+							}
+						}
+						
+						
+						if(DisplayName.contains("특성 초기화"))
+						{
+							userscore.set("userscore." + p.getName() + ".Attributes", "0:0:0:0:0:0:0");
+							userscore.set("userscore." + p.getName() + ".Attribute_Point", Initial_Stat_Point);
+							p.sendMessage("§b[마인아레나] §e특성이 초기화 되었습니다.");
+						}
+						
+						p.openInventory(pp.CreateAttributeGUI(p));
+					}
+					
+				}
+			}
+		}
 	}
 	@EventHandler
 	public void onShootBow(EntityShootBowEvent event)
@@ -1596,7 +1854,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 			Player p = (Player) entity;
 			ArenaPlayer ap = ArenaPlayerManager.getArtenaPlayer(p);
 			ap.setBowForce(BowForce);
-			Bukkit.broadcastMessage(ap.getPlayerBowForce() + "");
+			//Bukkit.broadcastMessage(ap.getPlayerBowForce() + "");
 		}
 		
 
@@ -1605,6 +1863,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onDamageByEntity(EntityDamageByEntityEvent event)
 	{
+		//Bukkit.broadcastMessage("-----------------------------");
 		if(event.getCause().equals(event.getCause().PROJECTILE))
 		{
 			LivingEntity entity = (LivingEntity) ((Projectile) event.getDamager()).getShooter();
@@ -1619,184 +1878,477 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		if(!event.isCancelled())
 		{
 			/*
-			 * 이동 속도		0
+			 * 스탯이름            단일     범위
 			 * 
-			 * 추가 피해		1 - 2
-			 * 방어 무시 피해	3
-			 * 치명타 확률		4
-			 * 치명타 피해		5
-			 * 생명력 흡수		6
-			 * 플레이어 추가 피해	7 - 8
-			 * 몬스터 추가 피해	9 - 10
+			 * 이동 속도		0 , 1 - 2
 			 * 
-			 * 피해 감소		11
-			 * 추가 생명력		12
-			 * 생명력 재생		13
-			 * 공격 회피		14
-			 * 피해 무시		15
-			 * 피해 반사		16
+			 * -> 공격
 			 * 
-			 * 화상			17
-			 * 빙결			18
-			 * 중독			19
-			 * 위더			20
-			 * 실명			21
-			 * 영혼 약탈		22
-			 * 플레이어 피해 무시 23
-			 * 몬스터 피해 무시 	24
-			 * 화살 피해 무시	25
+			 * 추가 피해		3 , 4 - 5
+			 * 방어 무시		6 , 7 - 8
+			 * 치명타 확률		9 , 10 - 11
+			 * 치명타 피해		12 , 13 - 14 
+			 * 생명력 흡수		15 , 16 - 17
+			 * 플레이어 추가 피해	18 , 19 - 20
+			 * 몬스터 피해		21 , 22 - 23   
+			 * 
+			 * -> 방어    
+			 * 
+			 * 모든 피해 감소	24 , 25 - 26
+			 * 추가 생명력		27 , 28 - 29
+			 * 생명력 재생		30 , 31 - 32
+			 * 공격 회피		33 , 34 - 35
+			 * 모든 피해 무시	36 , 37 - 38
+			 * 피해 반사		39 , 40 - 41
+			 * 플레이어 피해 무시 42 , 43 - 44
+			 * 몬스터 피해 무시  	45 , 46 - 47
+			 * 화살 피해 무시      48 , 49 - 50
+			 * 
+			 * -> 상태이상
+			 * 			
+			 * 화상			51 , 52 - 53
+			 * 빙결			54 , 55 - 56
+			 * 중독			57 , 58 - 59
+			 * 위더	 		60 , 61 - 62
+			 * 실명 			63 , 64 - 65
+			 * 영혼 약탈 		66 , 67 - 68
+			 * 
+			 *  -> 추가
+			 * 몬스터 피해 감소 	69 , 70 - 71
+			 * 
 			*/
 			
-			//Bukkit.broadcastMessage("최초 데미지: " + event.getDamage());
+			//(모든데미지증가 검데미지증가, 도끼데미지증가, 활데미지증가, 피해감소, 방어무시피해, 피해무시)
+			//자리:  0         1           2          3       4        5        6
+			
+			
+			if(Debug) Bukkit.broadcastMessage("------플러그인이 넘겨받은 최초 데미지: " + event.getDamage() + "------");
 			double damage = event.getDamage();
+			double temp_damage = 0.0d;
+			
+			// 기본 데미지 제거를 위해 1을 전체 데미지에서 감소시킴
+			//damage -= 1.0d;
 			
 			Entity target = event.getEntity();
 			Entity damager = event.getDamager();
+			
 			if(event.getCause().toString().equals("PROJECTILE"))
 			{
 				damager = (Entity) ((Projectile) damager).getShooter();
 			}
+			
+			// 플레이어끼리의 전투일 경우
 			if(damager instanceof Player && target instanceof Player)
 			{
+				if(Debug) Bukkit.broadcastMessage("-----------------------------");
+				if(Debug) Bukkit.broadcastMessage("PVP이벤트가 넘겨받은 데미지: " +  damage);
 				Player p = (Player) damager;
 				Player target2 = (Player) target;
-				double[] Damager_StatInfo= new double[23];
-				double[] Target_StatInfo= new double[23];
+				double[] Damager_StatInfo= new double[100];
+				double[] Target_StatInfo= new double[100];
+				Damager_StatInfo[12] = 50.0d;
+				Target_StatInfo[12] = 50.0d;
 				
 
-				// 아래는 데미지 감소 코드
-				Target_StatInfo = pp.getstat(target2, Target_StatInfo);
-				event.setDamage(damage - Target_StatInfo[15]);
-				
-				// 아래는 데미지 증가 코드
+				// 아래는 데미지 증가 코드-------------------------------------------------------
 				Damager_StatInfo = pp.getstat(p, Damager_StatInfo);
-				target2.damage(Damager_StatInfo[3]);
-				if(target2.isBlocking())
-				{
-					target2.damage(damage/3);
-				}	
 				
-				// 23.0 - 21.5 = 1.5
-				double AddtiveDamageOffset = Damager_StatInfo[8] - Damager_StatInfo[7];
+				// 치명타 피해와 방어 무시 피해를 위한 치명타 확률 발동변수 선언
+				double Critical_Percent = pp.getDamageFromStats(Damager_StatInfo, 9, 10, 11);
+				boolean Critical = pp.CanPlayerActivateCriticalDamage(Critical_Percent);
+				if(Debug) Bukkit.broadcastMessage("치명타가 발생하였는가?" + Critical);
 				
-				// offset = 1.5 -> 1.5 > 0 = true
-				if(AddtiveDamageOffset > 0)
-				{
-					// AddtiveDamageToPlayer = 0.0 ~ 1.5
-					// = 최소 데미지 + (ran.nextdouble * offset) 
-					// 만약 0.5 * 0.5의 경우라면 0.25중  0.05는 버림
-					double randomDouble = AddtiveDamageOffset * ran.nextDouble();
-					 
-					double AddtiveDamageToPlayer = LibMain.double_round(randomDouble,2);
-					
-					// 화살에 의한 공격일 경우 데미지의 증가폭이 활시위를 당긴 정도에 의해 결정됨.
-					if(event.getCause().toString().equals("PROJECTILE"))
-					{
-						ArenaPlayer ap = ArenaPlayerManager.getArtenaPlayer(p);
-						float bowForce = ap.getPlayerBowForce();
-						
-						AddtiveDamageToPlayer =((double)bowForce* damage);
-						
-						Bukkit.broadcastMessage(AddtiveDamageToPlayer+"");
-					}
-					
-					damage += (double)AddtiveDamageToPlayer;
-					
-					//Bukkit.broadcastMessage("데미지: " + event.getDamage());
-					
-					event.setDamage(damage);
-				}
+				// 모든 피해에 의해 데미지 증가
+				temp_damage = pp.getDamageFromStats(Damager_StatInfo, 3, 4, 5);
+				if(Debug) Bukkit.broadcastMessage("모든 피해에 의해 데미지 증가: " + temp_damage);
+				damage += temp_damage;
 				
-				this.BloodSuck(p, target2, Damager_StatInfo, event.getDamage());
+				// 플레이어 추가 피해에 의해 데미지 증가
+				temp_damage = pp.getDamageFromStats(Damager_StatInfo, 18, 19, 20);
+				if(Debug) Bukkit.broadcastMessage("플레이어 추가 피해에 의해 데미지 증가: " + temp_damage);
+				damage += temp_damage;
 				
-			}
-			else if(damager instanceof Player && (target instanceof Creature || target instanceof Slime))
-			{
-
-				double[] Player_StatInfo = new double[30];
-				Player_StatInfo = pp.getstat((LivingEntity)damager, Player_StatInfo);
-				int i = 0;
-				int AddtiveDamageOffset = (int)Player_StatInfo[10] - (int)Player_StatInfo[9];
-				if(AddtiveDamageOffset > 0)
-				{
-					int AddtiveDamageToMonster = ran.nextInt(AddtiveDamageOffset)+(int)Player_StatInfo[9];
-					
-					
-					damage += (double)AddtiveDamageToMonster;
-					event.setDamage(damage);
-					//Bukkit.broadcastMessage("데미지: " + event.getDamage());
-				}
-				
-				//아래는 플레이어에 의한 데미지 변경 코드
-				double[] Monster_StatInfo = new double[30];
-				Monster_StatInfo = pp.getstat((LivingEntity)target, Monster_StatInfo);
-				
-				double DownCase_Player_Damage = Monster_StatInfo[23];
-				damage -= DownCase_Player_Damage;
-				event.setDamage(damage);
-				
-				//아래는 플레이어에 의한 데미지 추가 코드
-				((LivingEntity)target).damage(Player_StatInfo[3]);
-				
-				//아래는 공격원이 화살일 경우 데미지 변경 코드
+				// 화살에 의한 공격일 경우 데미지의 증가폭이 활시위를 당긴 정도에 의해 결정됨.
 				if(event.getCause().toString().equals("PROJECTILE"))
 				{
-					double DownCase_Arrow_Damage = Monster_StatInfo[25];
-					damage -= DownCase_Arrow_Damage;
+					ArenaPlayer ap = ArenaPlayerManager.getArtenaPlayer(p);
+					float bowForce = ap.getPlayerBowForce();
+					damage =((double)bowForce* damage);
+				}
+				
+				if(Debug) Bukkit.broadcastMessage("현재까지 증감된 후의 데미지: " + damage);
+				
+				// 특성에 의해 데미지 증가 및 방어무시피해 적용
+				damage = pp.get_Player_Attribute_increse_damage(p, target, damage);
+				if(Debug) Bukkit.broadcastMessage("특성에 의해 증가된 데미지: " + damage);
+				
+				// 만약 타겟이 방패를 들고 방어중이라면 1/3 데미지를 직접 줌 (본래 데미지는 0이 들어가야 하는걸 강제로 넣음). 화살일경우 무시.
+				if(target2.isBlocking())
+				{
+					if(!event.getCause().toString().equals("PROJECTILE"))
+					{
+						target2.damage(damage/3);
+					}
+				}			
+				this.BloodSuck(p, target2, Damager_StatInfo, event.getDamage());
+				
+				// 치명타 피해에 의해 데미지 증가
+				if(Critical)
+				{
+					temp_damage = damage * (pp.getDamageFromStats(Damager_StatInfo, 12, 13, 14)/100);
+					if(Debug) Bukkit.broadcastMessage("치명타 피해에 의해 데미지 증가: " + temp_damage);
+					damage += temp_damage;
+				}
+				
+				//방어 무시에 의해 데미지를 직접 입힘
+				temp_damage = pp.getDamageFromStats(Damager_StatInfo, 6, 7, 8);
+				if(Critical)
+				{
+					double temp2 = temp_damage * (pp.getDamageFromStats(Damager_StatInfo, 12, 13, 14)/100);
+					double temp3 =  temp2 + temp_damage;
+					if(damage < 0.0d)
+					{
+						temp3 += damage;
+					}
+					if(temp3 > 0.0d)
+					{
+						target2.damage(temp3);
+						if(Debug) Bukkit.broadcastMessage("치명 방어 무시 피해에 의해 데미지를 직접 입힘: " + temp3);
+					}
+					
+				}
+				else
+				{
+					if(damage < 0.0d)
+					{
+						temp_damage += damage;
+						
+					}
+					if(temp_damage > 0.0d)
+					{
+						target2.damage(temp_damage);
+						if(Debug) Bukkit.broadcastMessage("비치명 방어 무시 피해에 의해 데미지를 직접 입힘: " + temp_damage);
+					}
+				}
+				
+				// 아래는 데미지 감소 코드-------------------------------------------------------
+				Target_StatInfo = pp.getstat(target2, Target_StatInfo);
+				
+				// 모든 피해 감소에 의해 데미지 감소
+				temp_damage = damage * (pp.getDamageFromStats(Target_StatInfo, 24, 25, 26) / 100);
+				if(Debug) Bukkit.broadcastMessage("모든 피해 감소에 의해 데미지 감소: " + temp_damage);
+				damage -= temp_damage;
+				
+				// 모든 피해 무시에 의한 데미지 감소
+				temp_damage = pp.getDamageFromStats(Target_StatInfo, 36, 37, 38);
+				if(Debug) Bukkit.broadcastMessage("모든 피해 무시에 의해 데미지 감소: " + temp_damage);
+				damage -= temp_damage;
+				
+				
+				
+				//화살 피해 무시에 의해 데미지 감소
+				if(event.getCause().toString().equals("PROJECTILE"))
+				{
+					temp_damage = pp.getDamageFromStats(Target_StatInfo, 48, 49, 50);
+					damage -= temp_damage;
+				}
+				
+				// 몬스터 피해 감소에 의해 데미지 감소
+				temp_damage = pp.getDamageFromStats(Target_StatInfo, 69, 70, 71);
+				if(Debug) Bukkit.broadcastMessage("몬스터 피해 감소에 의해 데미지 감소: " + temp_damage);
+				damage -= temp_damage;
+				
+				if(Debug) Bukkit.broadcastMessage("현재까지의 데미지: " + damage);
+				
+				// 특성에 의해 데미지 감소
+				damage = pp.get_Player_Attribute_decrese_damage(target2, damage);
+				if(Debug) Bukkit.broadcastMessage("특성에 의해 변경된 데미지: " + damage);
+				
+				
+				if(Debug) Bukkit.broadcastMessage("PVP 최종 데미지: " + temp_damage);
+				//데미지가 0보다 작다면 이벤트 취소
+				if(damage < 0.0d)
+				{
+					temp_damage=0;
+					event.setDamage(0.0d);
+					event.setCancelled(true);
+				}
+				else
+				{
+					// 최종 데미지를 서버에 업로드
+					temp_damage=0;
 					event.setDamage(damage);
 				}
+				
+			}
+			// 플레이어가 몬스터를 가격할 경우
+			else if(damager instanceof Player && (target instanceof Creature || target instanceof Slime))
+			{
+				if(Debug) Bukkit.broadcastMessage("-----------------------------");
+				if(Debug) Bukkit.broadcastMessage("PVE이벤트가 넘겨받은 데미지: " +  damage);
+				
+				// 플레이어 스탯 정보를 얻어옴
+				double[] Player_StatInfo = new double[100];
+				Player_StatInfo = pp.getstat((LivingEntity)damager, Player_StatInfo);
+				Player_StatInfo[12] = 50.0d;
+				
+				// 타겟의 스탯 정보를 얻어옴
+				double[] Monster_StatInfo = new double[100];
+				Monster_StatInfo = pp.getstat((LivingEntity)target, Monster_StatInfo);
+				Monster_StatInfo[12] = 50.0d;
+
+				// 아래는 데미지 증가 코드-------------------------------------------------------
+				
+				// 치명타 피해와 방어 무시 피해를 위한 치명타 확률 발동변수 선언
+				double Critical_Percent = pp.getDamageFromStats(Player_StatInfo, 9, 10, 11);
+				boolean Critical = pp.CanPlayerActivateCriticalDamage(Critical_Percent);
+				
+				// 모든 피해에 의해 데미지 증가
+				temp_damage = pp.getDamageFromStats(Player_StatInfo, 3, 4, 5);
+				if(Debug) Bukkit.broadcastMessage("모든 피해 에 의해 데미지 증가: " +  temp_damage);
+				damage += temp_damage;
+				
+				// 몬스터 추가 피해에 의해 데미지 증가
+				temp_damage = pp.getDamageFromStats(Player_StatInfo, 21, 22, 23);
+				if(Debug) Bukkit.broadcastMessage("몬스터 추가 피해에 의해 데미지 증가: " +  temp_damage);
+				damage += temp_damage;
 				
 				//아래는 흡혈 코드
 				this.BloodSuck((LivingEntity)damager, (LivingEntity)target, Player_StatInfo, event.getDamage());
-			}
-			else if((damager instanceof Creature || damager instanceof Slime) && target instanceof Player)
-			{
 				
-				double[] Monster_StatInfo = new double[30];
-				Monster_StatInfo = pp.getstat((LivingEntity)damager, Monster_StatInfo);
-				
-				
-				
-				
-				// 아래는 플레이어 추가 데미지 코드
-				
-				int AddtiveDamageOffset = (int)Monster_StatInfo[8] - (int)Monster_StatInfo[7];
-				
-				if(AddtiveDamageOffset > 0)
-				{
-					int AddtiveDamageToPlayer = ran.nextInt(AddtiveDamageOffset)+(int)Monster_StatInfo[7];
-					damage += (double)AddtiveDamageToPlayer;
-					event.setDamage(damage);
-					//Bukkit.broadcastMessage("데미지: " + event.getDamage());
-				}
-				
-				
-				//아래는 플레이어에 의한 데미지 변경 코드
-				double[] Player_StatInfo = new double[30];
-				Player_StatInfo = pp.getstat((LivingEntity)target, Player_StatInfo);
-				
-				double DownCase_Monster_Damage = Player_StatInfo[24];
-				damage -= DownCase_Monster_Damage;
-				event.setDamage(damage);
-				
-				//아래는 공격원이 화살일 경우 데미지 변경 코드
+				// 화살에 의한 공격일 경우 데미지의 증가폭이 활시위를 당긴 정도에 의해 결정됨.
 				if(event.getCause().toString().equals("PROJECTILE"))
 				{
-					double DownCase_Arrow_Damage = Player_StatInfo[25];
-					damage -= DownCase_Arrow_Damage;
+					ArenaPlayer ap = ArenaPlayerManager.getArtenaPlayer((Player) damager);
+					float bowForce = ap.getPlayerBowForce();
+					damage =((double)bowForce* damage);
+				}
+				
+				// 특성에 의해 데미지 증가 - 차후에 던전에 적용할 경우 주석 제거
+				if(Debug) Bukkit.broadcastMessage("현재 까지 증감후 데미지: " +  damage);
+				damage = pp.get_Player_Attribute_increse_damage((Player) damager, target, damage);
+				if(Debug) Bukkit.broadcastMessage("특성에 의해 증가된 현재 데미지: " +  damage);
+				
+				// 치명타 피해에 의해 데미지 증가
+				if(Critical)
+				{
+					//Bukkit.broadcastMessage("before_damage: " + damage);
+					//Bukkit.broadcastMessage("Player_StatInfo[12]: " + Player_StatInfo[12]);
+					//Bukkit.broadcastMessage("Player_StatInfo[13]: " + Player_StatInfo[13]);
+					//Bukkit.broadcastMessage("Player_StatInfo[14]: " + Player_StatInfo[14]);
+					temp_damage = damage * (pp.getDamageFromStats(Player_StatInfo, 12, 13, 14)/100);
+					if(Debug) Bukkit.broadcastMessage("치명타 피해에 의해 데미지 증가: " + temp_damage);
+					damage += temp_damage;
+					//Bukkit.broadcastMessage("After_damage: " + damage);
+					
+				}
+				//방어 무시에 의해 데미지를 직접 입힘
+				temp_damage = pp.getDamageFromStats(Player_StatInfo, 6, 7, 8);
+				if(Critical)
+				{
+					double temp2 = temp_damage * (pp.getDamageFromStats(Player_StatInfo, 12, 13, 14)/100);
+					double temp3 =  temp2 + temp_damage;
+					if(damage < 0.0d)
+					{
+						temp3 += damage;
+					}
+					if(temp3 > 0.0d)
+					{
+						((LivingEntity)target).damage(temp3);
+						if(Debug) Bukkit.broadcastMessage("치명 방어 무시 피해에 의해 데미지를 직접 입힘: " + (temp3));
+					}
+				}
+				else
+				{
+					if(damage < 0.0d)
+					{
+						temp_damage += damage;
+					}
+					if(temp_damage > 0.0d)
+					{
+						((LivingEntity)target).damage(temp_damage);
+						if(Debug) Bukkit.broadcastMessage("비치명 방어 무시 피해에 의해 데미지를 직접 입힘: " + temp_damage);
+					}
+				}
+				
+				// 아래는 데미지 감소 코드-------------------------------------------------------
+				
+				// 모든 피해 감소에 의해 데미지 감소
+				temp_damage = damage * (pp.getDamageFromStats(Monster_StatInfo, 24, 25, 26) / 100);
+				if(Debug) Bukkit.broadcastMessage("모든 피해 감소에 의해 데미지 감소: " +  temp_damage);
+				damage -= temp_damage;
+				
+				// 모든 피해 무시에 의해 데미지 감소
+				temp_damage = pp.getDamageFromStats(Monster_StatInfo, 36, 37, 38);
+				if(Debug) Bukkit.broadcastMessage("모든 피해 무시에 의해 데미지 감소: " +  temp_damage);
+				damage -= temp_damage;				
+				
+				// 플레이어 피해 무시에 의해 데미지 감소
+				temp_damage = pp.getDamageFromStats(Monster_StatInfo, 42, 43, 44);
+				if(Debug) Bukkit.broadcastMessage("플레이어 피해 무시에 의해 데미지 감소: " + temp_damage);
+				damage -= temp_damage;
+				
+				//화살 피해 무시에 의해 데미지 감소
+				if(event.getCause().toString().equals("PROJECTILE"))
+				{
+					temp_damage = pp.getDamageFromStats(Monster_StatInfo, 48, 49, 50);
+					if(Debug)  Bukkit.broadcastMessage("화살 피해 무시에 의해 데미지 감소: " + temp_damage);
+					damage -= temp_damage;
+					
+				}
+				
+				
+				
+				//데미지가 0보다 작다면 이벤트 취소
+				if(damage < 0.0d)
+				{
+					damage = 0;
+					temp_damage=0;
+					event.setDamage(0.0d);
+					event.setCancelled(true);
+				}
+				else
+				{
+					temp_damage=0;
+					// 최종 데미지를 서버에 업로드
 					event.setDamage(damage);
 				}
-				this.BloodSuck((LivingEntity)damager, (LivingEntity)target, Monster_StatInfo, event.getDamage());
+				if(Debug) Bukkit.broadcastMessage("PVE 최종 데미지: " +  damage);	
 			}
-			
-			
-			if(event.getDamage() < 0)
+			// 몬스터가 플레이어를 가격하는 경우
+			else if((damager instanceof Creature || damager instanceof Slime) && target instanceof Player)
 			{
-				event.setDamage(0d);
+				if(Debug) Bukkit.broadcastMessage("-----------------------------");
+				if(Debug) Bukkit.broadcastMessage("EVP이벤트가 넘겨받은 데미지: " +  damage);
+				 
+				//가격하는 입장인 몬스터의 스탯을 구함
+				double[] Monster_StatInfo = new double[100];
+				Monster_StatInfo = pp.getstat((LivingEntity)damager, Monster_StatInfo);
+				Monster_StatInfo[12] = 50.0d;
+				
+				//피격당하는 입장인 플레이어의 스탯을 구함
+				double[] Player_StatInfo = new double[100];
+				Player_StatInfo = pp.getstat((LivingEntity)target, Player_StatInfo);
+				Monster_StatInfo[12] = 50.0d;
+				
+				// 아래는 데미지 증가 코드-------------------------------------------------------
+						
+				// 치명타 피해와 방어 무시 피해를 위한 치명타 확률 발동변수 선언
+				double Critical_Percent = pp.getDamageFromStats(Monster_StatInfo, 9, 10, 11);
+				boolean Critical = pp.CanPlayerActivateCriticalDamage(Critical_Percent);
+				
+				// 모든 피해에 의해 데미지 증가
+				temp_damage = pp.getDamageFromStats(Monster_StatInfo, 3, 4, 5);
+				if(Debug) Bukkit.broadcastMessage("모든 피해에 의해 데미지 증가: " +  temp_damage);
+				damage += temp_damage;
+				
+				// 플레이어 추가 피해에 의해 데미지 증가
+				temp_damage = pp.getDamageFromStats(Monster_StatInfo, 18, 19, 20);
+				if(Debug) Bukkit.broadcastMessage("플레이어 추가 피해에 의해 데미지 증가: " +  temp_damage);
+				damage += temp_damage;
+				
+				//아래는 흡혈 코드
+				this.BloodSuck((LivingEntity)damager, (LivingEntity)target, Monster_StatInfo, event.getDamage());
+				
+				// 만약 타겟이 방패를 들고 방어중이라면 1/3 데미지를 직접 줌 (본래 데미지는 0이 들어가야 하는걸 강제로 넣음). 화살일경우 무시.
+				if(((Player) target).isBlocking())
+				{
+					if(!event.getCause().toString().equals("PROJECTILE"))
+					{
+						((LivingEntity) target).damage(damage/3);
+					}
+				}
+					
+				// 치명타 피해에 의해 데미지 증가
+				if(Critical)
+				{
+					temp_damage = damage * (pp.getDamageFromStats(Monster_StatInfo, 12, 13, 14)/100);
+					if(Debug) Bukkit.broadcastMessage("치명타 피해에 의해 데미지 증가: " +  temp_damage);
+					damage += temp_damage;
+				}
+				
+				//방어 무시에 의해 데미지를 직접 입힘
+				temp_damage = pp.getDamageFromStats(Monster_StatInfo, 6, 7, 8);
+				if(Critical)
+				{
+					double temp2 = temp_damage * (pp.getDamageFromStats(Monster_StatInfo, 12, 13, 14)/100);
+					double temp3 =  temp2 + temp_damage;
+					if(damage < 0.0d)
+					{
+						temp3 += damage;
+					}
+					if(temp3 > 0.0d)
+					{
+						((LivingEntity)target).damage(temp3);
+						if(Debug) Bukkit.broadcastMessage("치명 방어 무시 피해에 의해 데미지를 직접 입힘: " +  temp3);
+					}
+				}
+				else
+				{
+					if(damage < 0.0d)
+					{
+						temp_damage += damage;
+					}
+					if(temp_damage > 0.0d)
+					{
+						((LivingEntity)target).damage(temp_damage);
+						if(Debug) Bukkit.broadcastMessage("비치명 방어 무시 피해에 의해 데미지를 직접 입힘: " +  temp_damage);
+					}	
+				}
+				
+				// 아래는 데미지 감소 코드-------------------------------------------------------
+				
+				// 모든 피해 감소에 의해 데미지 감소
+				temp_damage = damage * (pp.getDamageFromStats(Player_StatInfo, 24, 25, 26) / 100);
+				if(Debug) Bukkit.broadcastMessage("모든 피해 감소에 의해 데미지 감소: " +  temp_damage);
+				damage -= temp_damage;
+				
+				// 몬스터 피해 무시에 의해 데미지 감소
+				temp_damage = pp.getDamageFromStats(Player_StatInfo, 45, 46, 47);
+				if(Debug) Bukkit.broadcastMessage("몬스터 피해 무시에 의해 데미지 감소: " +  temp_damage);
+				damage -= temp_damage;
+				
+				// 몬스터 피해 감소에 의해 데미지 감소
+				temp_damage = pp.getDamageFromStats(Player_StatInfo, 69, 70, 71);
+				if(Debug) Bukkit.broadcastMessage("몬스터 피해 감소에 의해 데미지 감소: " +  temp_damage);
+				damage = damage - (damage * (temp_damage/100));
+				
+				// 화살 피해 무시에 의해 데미지 감소
+				if(event.getCause().toString().equals("PROJECTILE"))
+				{
+					temp_damage = pp.getDamageFromStats(Player_StatInfo, 48, 49, 50);
+					if(Debug) Bukkit.broadcastMessage("화살 피해 무시에 의해 데미지 감소: " +  temp_damage);
+					damage -= temp_damage;
+				}
+				
+				
+				//데미지가 0보다 작다면 이벤트 취소
+				if(damage < 0.0d)
+				{
+					temp_damage=0;
+					event.setDamage(0.0d);
+					event.setCancelled(true);
+				}
+				else
+				{
+					temp_damage=0;
+					//최종 데미지를 서버에 업로드
+					event.setDamage(damage);
+				}	
 			}
-			//Bukkit.broadcastMessage("최종 데미지: " + event.getDamage());
-
+			// 몬스터가 몬스터를 가격하는 경우
+			else if((damager instanceof Creature || damager instanceof Slime) && (target instanceof Creature || target instanceof Slime))
+			{	
+				event.setCancelled(true);
+			}
 		}
+		if(event.getDamage() < 0)
+		{
+			//데미지가 0보다 작다면 이벤트 취소
+			event.setDamage(0.0d);
+			event.setCancelled(true);
+		}
+		if(Debug) Bukkit.broadcastMessage("최종 데미지: " + event.getDamage());
 	}
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onBlockFade(BlockFadeEvent event)
@@ -1896,12 +2448,6 @@ public class ArenaMatch extends JavaPlugin implements Listener
 			}
 		}
 	}
-	@EventHandler
-	public void onBlockPlaced(BlockPlaceEvent event) 
-	{
-		Player p = event.getPlayer();
-		Bukkit.dispatchCommand(p, "c spawn ");
-	}
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onChat(AsyncPlayerChatEvent event)
 	{
@@ -1929,6 +2475,20 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		break;
 		case "guild":
 		break;
+		}
+	}
+	// 플레이어가 다른 월드로 이동할때 이벤트 발생
+	@EventHandler(priority = EventPriority.LOWEST)
+	public void onPlayerWorldChange(PlayerChangedWorldEvent event)
+	{
+		// 이벤트를 발생시킨 플레이어를 얻어옴
+		Player p = event.getPlayer();
+		p.setGlowing(false);
+		
+		if(EntityHasEquip(p, 443))
+		{
+			p.sendMessage("§b[마인아레나] §e엘트라를 입고 다른 월드로 이동할 수 없습니다. 스폰 지점으로 이동합니다.");
+			Bukkit.dispatchCommand(p, "c spawn ");
 		}
 	}
 	public static List<String> sortByValue(final Map<String,Integer> map) 
@@ -2033,6 +2593,11 @@ public class ArenaMatch extends JavaPlugin implements Listener
 						{
 							Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "heal " + p1.getName());
 							Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "heal " + p2.getName());
+							
+							//petblock disable을 위해 커맨드 사용
+							Bukkit.dispatchCommand(p1, " petblocks disable " + p1.getName());
+							Bukkit.dispatchCommand(p2, " petblocks disable " + p2.getName());
+							
 							RemovePlayerInList(p2.getName());
 							RemovePlayerInList(p1.getName());
 							
@@ -2152,11 +2717,15 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		PersonalGUI.put(winner.getName(), CreateGUI(winner));
 		PersonalGUI.put(loser.getName(), CreateGUI(loser));
 		disableMusic(winner);
-		winner.playSound(winner.getLocation(), Sound.RECORD_CHIRP, SoundCategory.RECORDS, 100000, 1);
+		//winner.playSound(winner.getLocation(), Sound.RECORD_CHIRP, SoundCategory.RECORDS, 100000, 1);
 		modifyScoreBoard(winner);
 		match.put(winner.getName(), "@");
 		match.put(loser.getName(), "@");
 		this.KillTimer(loser, winner);
+		
+		//petblock 플러그인의 기능을 enable 시킴
+		Bukkit.dispatchCommand(loser, " petblocks enable " + loser.getName());
+		Bukkit.dispatchCommand(winner, " petblocks enable " + winner.getName());
 		
 	}
 	public int getPlayerRankQueueNumber(int PlayerScore)
@@ -2220,6 +2789,46 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				break;
 			}
 		}
+		return b;
+	}
+	public boolean EntityHasEquip(LivingEntity Entity, int Typeid)
+	{
+		boolean b = false;
+		
+		//ItemStack RightHand = Entity.getEquipment().getItemInHand();
+		//ItemStack LeftHand = Entity.getEquipment().getItemInOffHand();
+		ItemStack Helmet = Entity.getEquipment().getHelmet();
+		ItemStack Chest = Entity.getEquipment().getChestplate();
+		ItemStack Leggings = Entity.getEquipment().getLeggings();
+		ItemStack Boots = Entity.getEquipment().getBoots();
+		
+		/*
+		if(!(RightHand.getTypeId() == Typeid))
+		{
+			b = true;
+		}
+		if(!(LeftHand.getTypeId() == Typeid))
+		{
+			b = true;
+		}
+		*/
+		if(Helmet.getTypeId() == Typeid)
+		{
+			b = true;
+		}
+		if(Chest.getTypeId() == Typeid)
+		{
+			b = true;
+		}
+		if(Leggings.getTypeId() == Typeid)
+		{
+			b = true;
+		}
+		if(Boots.getTypeId() == Typeid)
+		{
+			b = true;
+		}
+		
 		return b;
 	}
 	public void IncreaseScore(String string, int multiplier)
@@ -2484,6 +3093,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
         }.runTaskTimer(this, 0, 12000);
 	
 	}
+	/*
 	public void RespawnTimer(Player p)
 	{
 		BukkitTask task = new BukkitRunnable() 
@@ -2496,6 +3106,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
         }.runTaskLater(this, 20);
 	
 	}
+	*/
 	public void KillTimer(Player loser, Player winner)
 	{
 		BukkitTask task = new BukkitRunnable() 
@@ -2654,6 +3265,8 @@ public class ArenaMatch extends JavaPlugin implements Listener
 			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "warp " + location[1] + " " + p2.getName());
 			
 			int rv = ran.nextInt(4);
+			/*
+			 * 18-01-29 재생되는 노래를 모두 지워달라는 요청에 의해 주석 처리
 			switch(rv)
 			{
 			case 0:
@@ -2684,6 +3297,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				p2.playSound(p2.getLocation(), Sound.RECORD_MELLOHI,SoundCategory.RECORDS, 10000, 1);
 				break;
 			}
+			*/
 		}
 		return b;
 	}
@@ -2706,7 +3320,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		String point = points.get(RandomValue);
 		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "warp " + point + " " + target.getName());
 		disableMusic(target);
-		target.playSound(target.getLocation(), Sound.RECORD_BLOCKS, SoundCategory.RECORDS, 100000, 1);
+		//target.playSound(target.getLocation(), Sound.RECORD_BLOCKS, SoundCategory.RECORDS, 100000, 1);
 		target.setGlowing(true);
 		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "heal " + target.getName());
 	}
@@ -2774,6 +3388,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		
 		return GuiInventory; 
 	}
+
 	public void GUIAnimation(Player p, Integer adder)
 	{
 		BukkitTask task = new BukkitRunnable() 
@@ -3282,6 +3897,28 @@ public class ArenaMatch extends JavaPlugin implements Listener
 			   this.saveResource("tier.yml", true);
 		   }
 	}
+	public void saveAttributeGUIFile()
+	{
+		try 
+		{
+			AttributeGUI.save(AttributeGUIFile);
+	    }
+		catch (IOException ex)
+		{
+	        getLogger().log(Level.SEVERE, "Could not save config to " + AttributeGUIFile, ex);
+	    }
+	}
+	public void saveDefaultAttributeGUIFile()
+	{
+		   if (AttributeGUIFile == null)
+		   {
+			   AttributeGUIFile = new File(getDataFolder(), "AttributeGUI.yml");
+		   }
+		   if (!AttributeGUIFile.exists())
+		   {            
+			   this.saveResource("AttributeGUI.yml", true);
+		   }
+	}
 	public static Economy getPluginEconomy()
 	{
 		return vault;
@@ -3318,7 +3955,8 @@ public class ArenaMatch extends JavaPlugin implements Listener
 	public void BloodSuck(LivingEntity Damager, LivingEntity Target, double[] Damager_StatInfo, double damage)
 	{
 		double health = Damager.getHealth();
-		double UpHealth = damage * (Damager_StatInfo[6] / 100);
+		double SuckValue = pp.getDamageFromStats(Damager_StatInfo, 15, 16, 17);
+		double UpHealth = damage * (SuckValue / 100);
 		
 		double Maxhealth = Damager.getMaxHealth();
 		if((health+UpHealth) > Maxhealth)
@@ -3625,7 +4263,6 @@ public class ArenaMatch extends JavaPlugin implements Listener
 	public static ArenaMatch getInstance()
 	{
 		return instance;
-	}	
-	
+	}		
 	
 }
