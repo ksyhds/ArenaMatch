@@ -1,6 +1,6 @@
 name: ArenaMatch
 main: com.Moon_Eclipse.ArenaMatch.ArenaMatch
-version: 1.5.5[18.01.28]
+version: 1.6.1[18.02.20]
 softdepend: [Essentials, MCMANYTitle]
 author: Moon_Eclipse(MineArena Minecraft Arena Server)
 commands:
@@ -26,3 +26,5 @@ commands:
     description: /아이템의 속성을 무한으로 변경한다.
   특성:
     description: /특성 - 특성 GUI를 연다.
+  버리기:
+    description: /버리기 동의 - 아이템을 1분간 버릴수 있도록 한다.

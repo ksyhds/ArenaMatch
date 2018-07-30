@@ -1,0 +1,19 @@
+Effect:
+  "화상":
+    level: 1
+    time: 3
+  "빙결":
+    level: 1
+    time: 3
+  "중독":
+    level: 1
+    time: 3
+  "위더":
+    level: 1
+    time: 3
+  "실명":
+    level: 1
+    time: 3
+  "영혼 약탈":
+    level: 1
+    time: 3
