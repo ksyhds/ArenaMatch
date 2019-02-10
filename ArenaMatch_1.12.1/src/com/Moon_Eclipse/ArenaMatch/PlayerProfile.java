@@ -33,6 +33,7 @@ public class PlayerProfile
 	
 	
 	// 특성을 찍거나 보기위한 GUi 제작
+	/*
 	public Inventory CreateAttributeGUI(Player p)
 	{
 		ItemStack item = new ItemStack(0);
@@ -247,7 +248,7 @@ public class PlayerProfile
 		}
 		return inv;
 	}
-
+  */
 	public List<String> EquipStat(LivingEntity Entity)
 	{
 		List<String> StatLore = new ArrayList<String>();
@@ -329,6 +330,9 @@ public class PlayerProfile
 		 * 고정 피해		72 , 73 - 74
 		 * 몬스터 생명력 흡수 75 , 76 - 77
 		 * 
+		 * 초열			78 , 79 - 80
+		 * 끈적끈적		81 , 82 - 83
+		 * 혈독			84 , 85 - 86
 		 * 
 		*/
 		//-----------------------------------------------------------
@@ -340,7 +344,11 @@ public class PlayerProfile
 		// getstat -> StatCalculator -> getStatCase -> StatCalculator -> Range,nonRange
 		
 		//스탯을 얻어옴
-		this.getstat(Entity, StatInfo, false);
+		this.getstat(Entity, StatInfo);
+		
+		// 프로필 미사용으로 인해  아래 항목 주석 처리
+		
+		/*
 		
 		//치명타 피해에 옵셋을 주기위해 50을 더함
 		StatInfo[12] += 50.0d;
@@ -352,6 +360,8 @@ public class PlayerProfile
 		StatLore.add("   ");	
 		
 		//stats.add("§f〔 §b이동 속도: §d" + PlusMinus(StatInfo[0], false) + "% §f〕");
+		
+		
 		
 		StatLore.add("   §f");
 		StatLore.add("   §a▶ §c공격");
@@ -393,10 +403,11 @@ public class PlayerProfile
 		StatLore = MurgeProfileStatLore(StatLore, "      §f* §c위더 : §d", StatInfo[60], StatInfo[61], StatInfo[62], true, 0.0d);
 		StatLore = MurgeProfileStatLore(StatLore, "      §f* §c실명 : §d", StatInfo[63], StatInfo[64], StatInfo[65], true, 0.0d);
 		StatLore = MurgeProfileStatLore(StatLore, "      §f* §5영혼 약탈 : §d", StatInfo[66], StatInfo[67], StatInfo[68], true, 0.0d);
-
+		 */
 		return StatLore;
+		
 	}
-	public double[] getstat(LivingEntity Entity, double[] StatInfo, Boolean isShoot)
+	public double[] getstat(LivingEntity Entity, double[] StatInfo)
 	{
 		ItemStack RightHand = Entity.getEquipment().getItemInHand();
 		ItemStack LeftHand = Entity.getEquipment().getItemInOffHand();
@@ -416,7 +427,7 @@ public class PlayerProfile
 		if(!(RightHand.getTypeId() == 0))
 		{
 			// 만약 활을 들고있는데 활을 쏜것이 아니라면
-			if(RightHand.getType().equals(Material.BOW) && !isShoot)
+			if(RightHand.getType().equals(Material.BOW))
 			{
 				;
 			}
@@ -662,6 +673,15 @@ public class PlayerProfile
 						StatInfo = LoreContainString(StatInfo, lore, 75, 76, 77, true);
 					}
 					
+				break;
+				case 26:
+					StatInfo = LoreContainString(StatInfo, lore, 78, 79, 80, true);
+				break;
+				case 27:
+					StatInfo = LoreContainString(StatInfo, lore, 81, 82, 83, true);
+				break;
+				case 28:
+					StatInfo = LoreContainString(StatInfo, lore, 84, 85, 86, true);
 				break;
 					
 				}

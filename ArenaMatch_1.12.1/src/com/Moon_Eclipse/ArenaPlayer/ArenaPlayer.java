@@ -18,6 +18,7 @@ public class ArenaPlayer
 	{
 		MinecraftPlayer = p;
 	}
+	
 	public void setBowForce(float bf)
 	{
 		this.BowForce = bf;
@@ -26,6 +27,7 @@ public class ArenaPlayer
 	{
 		return BowForce;
 	}
+	
 	public boolean getCanDrop()
 	{
 		return this.CanDrop;
@@ -44,10 +46,12 @@ public class ArenaPlayer
 	{
 		return Shoot;
 	}
+	
 	public void setShoot(boolean set)
 	{
 		this.Shoot = set;
 	}
+	
 	public void RunPlayerItemDropTimer()
 	{
 		setCanDrop(true);

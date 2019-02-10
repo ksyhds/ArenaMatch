@@ -25,6 +25,3 @@ stats:
   monster_reduce_damage: "몬스터 피해 감소"
   Fixed_Damage: "고정 피해"
   Monster_Blood_Suck: "몬스터 생명력 흡수"
-  Ex_burn: "초열"
-  Ex_freeze: "끈적끈적"
-  Ex_addicted: "혈독"

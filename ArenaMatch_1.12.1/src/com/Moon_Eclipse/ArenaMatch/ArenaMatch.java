@@ -376,13 +376,14 @@ public class ArenaMatch extends JavaPlugin implements Listener
 						case "getprofile":
 							
 							double stat_array[] = new double[100];
-							stat_array = pp.getstat(p, stat_array, false);
+							stat_array = pp.getstat(p, stat_array);
 							for(int i = 0 ; i < 30 ; i ++)
 							{
 								p.sendMessage(i + "번째: " + stat_array[i]);
 							}
 							
 						break;
+						/*
 						case "bowforce":
 							
 							String Playername = args[1];
@@ -393,6 +394,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 							p.sendMessage("입력이름: " + Playername + ", BowForce: " + bowforce);
 							
 						break;
+						*/
 						case "sendmessage":
 							p.sendMessage("§b[마인아레나] §e전투중에는 사용할 수 없는 명령어 입니다.");
 						break;
@@ -608,6 +610,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 					}
 				}
 			}
+			/*
 			else if(command.getName().equalsIgnoreCase("p"))
 			{
 				Player p = (Player) sender;
@@ -651,6 +654,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				}
 			}
 			*/
+			/*
 			else if(command.getName().equals("파티"))
 			{
 				// 파티 가입 파티이름 비밀번호
@@ -1132,6 +1136,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 					}
 				}
 			}
+			*/
 			else if(command.getName().equals("메세지"))
 			{
 				Player p = (Player) sender;
@@ -1161,6 +1166,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 					p.getInventory().addItem(is);
 				}
 			}
+			/*
 			else if(command.getName().equals("프로필"))
 			{
 				if(sender instanceof Player)
@@ -1187,6 +1193,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 					}
 				}
 			}
+			*/
 			else if(command.getName().equals("순위"))
 			{
 				if(sender instanceof Player)
@@ -1327,6 +1334,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 					sender.sendMessage("플레이어만이 가능합니다.");
 				}
 			}
+			/*
 			else if(command.getName().equals("특성"))
 			{
 				if(sender instanceof Player)
@@ -1340,6 +1348,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 					sender.sendMessage("플레이어만이 가능합니다.");
 				}
 			}
+			*/
 			// 1분동안 아이템을 버릴 수 있도록 ArenaPlayer의 Boolean 변수를 조정
 			else if(command.getName().equals("버리기"))
 			{
@@ -1579,6 +1588,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 			}
 		}
 	}
+	/*
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onEntityInteract(PlayerInteractEntityEvent event)
 	{
@@ -1609,6 +1619,8 @@ public class ArenaMatch extends JavaPlugin implements Listener
 			}
 		}
 	}
+	*/
+	
 	@EventHandler
 	public void onInventoryClick(InventoryClickEvent event)
 	{
@@ -1616,8 +1628,8 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		
 		// 인벤토리를 구분하기위한 구분자들을 설정.
 		String InventoryTitle = "MineArena Arena Page";
-		String ProfilGUITitle = "님의 프로필";
-		String AttributeGUITitle = "님의 특성";	
+		//String ProfilGUITitle = "님의 프로필";
+		//String AttributeGUITitle = "님의 특성";	
 		
 		if(event.getInventory().getTitle().equalsIgnoreCase(InventoryTitle) && (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR))
 		{
@@ -1716,6 +1728,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				}
 			}
 		}
+		/*
 		else if(event.getInventory().getTitle().contains(ProfilGUITitle) && (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR))
 		{
 			event.setCancelled(true);
@@ -1855,6 +1868,8 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				}
 			}
 		}	
+		*/
+		/*
 		// 만약 인벤토리의 이름이 "님의 특성"을 갖으면서 현재 클릭한 아이템이 null이 아니고 재료AIR가 아니라면
 		else if(event.getInventory().getTitle().contains(AttributeGUITitle) && (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR))
 		{
@@ -1888,12 +1903,12 @@ public class ArenaMatch extends JavaPlugin implements Listener
 						
 						// 만약 스탯을 다 찍어서 더이상 스탯을 변경할 수 없다면
 						
-						/*
-						일반좌클=1포인트 증가
-						일반우클=1포인트 감소
-						쉬프트좌=최대포인트까지 증가
-						쉬프트우=0포인트까지 감소
-						 */
+						
+						//일반좌클=1포인트 증가
+						//일반우클=1포인트 감소
+						//쉬프트좌=최대포인트까지 증가
+						//쉬프트우=0포인트까지 감소
+						
 						
 						
 						// 이벤트의 종류에 따라 각각 다른 처리를 함
@@ -1955,7 +1970,10 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				}
 			}
 		}
+		*/
 	}
+	
+	/*
 	@EventHandler
 	public void onShootBow(EntityShootBowEvent event)
 	{
@@ -1972,6 +1990,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 
 		
 	}
+	*/
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onDamageByEntity(EntityDamageByEntityEvent event)
 	{
@@ -1986,7 +2005,6 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				double damage = event.getDamage() * 0.7;
 				event.setDamage(damage);
 			}
-			
 			// 화살로 공격한게 유저라면, 해당 유저의 활사격 변수를 true로 변경
 			if(entity instanceof Player)
 			{
@@ -2039,7 +2057,12 @@ public class ArenaMatch extends JavaPlugin implements Listener
 			 * 고정 피해		72 , 73 - 74
 			 * 몬스터 생명력 흡수 75 , 76 - 77
 			 * 
+			 * 초열			78 , 79 - 80
+			 * 끈적끈적		81 , 82 - 83
+			 * 혈독			84 , 85 - 86
+			 * 
 			*/
+			
 			
 			//(모든데미지증가 검데미지증가, 도끼데미지증가, 활데미지증가, 피해감소, 방어무시피해, 피해무시)
 			//자리:  0         1           2          3       4        5        6
@@ -2054,7 +2077,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 			
 			Entity target = event.getEntity();
 			Entity damager = event.getDamager();
-			
+						
 			if(event.getCause().toString().equals("PROJECTILE"))
 			{
 				damager = (Entity) ((Projectile) damager).getShooter();
@@ -2067,18 +2090,27 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				if(Debug) Bukkit.broadcastMessage("PVP이벤트가 넘겨받은 데미지: " +  damage);
 				Player p = (Player) damager;
 				Player target2 = (Player) target;				
+				
+				// 만약 공격자의 손에 활을 들고있다면 스탯 계산 취소
+				if(p.getInventory().getItemInMainHand().getTypeId() == 261)
+				{
+					return;
+				}
+				
 				double[] Damager_StatInfo= new double[100];
 				double[] Target_StatInfo= new double[100];
 				Damager_StatInfo[12] = 50.0d;
 				Target_StatInfo[12] = 50.0d;
 				
+				
 				// Damager의 활사격변수를 얻어옴
 				ArenaPlayer ap = ArenaPlayerManager.getArtenaPlayer(p);
 				boolean isShoot = ap.isShoot();
 				
+				
 				// 아래는 데미지 증가 코드-------------------------------------------------------
 				
-				Damager_StatInfo = pp.getstat(p, Damager_StatInfo, isShoot);
+				Damager_StatInfo = pp.getstat(p, Damager_StatInfo);
 				
 				// 치명타 피해와 방어 무시 피해를 위한 치명타 확률 발동변수 선언
 				double Critical_Percent = pp.getDamageFromStats(Damager_StatInfo, 9, 10, 11);
@@ -2094,7 +2126,8 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				temp_damage = pp.getDamageFromStats(Damager_StatInfo, 18, 19, 20);
 				if(Debug) Bukkit.broadcastMessage("플레이어 추가 피해에 의해 데미지 증가: " + temp_damage);
 				damage += temp_damage;
-
+				
+				
 				// 화살에 의한 공격일 경우 데미지의 증가폭이 활시위를 당긴 정도에 의해 결정됨.
 				if(event.getCause().toString().equals("PROJECTILE"))
 				{
@@ -2121,7 +2154,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				// 아래는 데미지 감소 코드-------------------------------------------------------
 				
 				// getstat 메소드의 3번째 매개변수는 사격변수이고 연산이 제대로 되게 하기 위해서 true를 전달함.
-				Target_StatInfo = pp.getstat(target2, Target_StatInfo, true);
+				Target_StatInfo = pp.getstat(target2, Target_StatInfo);
 				
 				// 모든 피해 감소에 의해 데미지 감소
 				temp_damage = damage * (pp.getDamageFromStats(Target_StatInfo, 24, 25, 26) / 100);
@@ -2229,20 +2262,27 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				
 				Player player = (Player)damager;
 				
+				// 만약 공격자의 손에 활을 들고있다면 스탯 계산 취소
+				if(player.getInventory().getItemInMainHand().getTypeId() == 261)
+				{
+					return;
+				}
+				
 				// 사격변수를 불러오기위해 ArenaPlayer인스턴스 생성
 				ArenaPlayer ap = ArenaPlayerManager.getArtenaPlayer(player);
 				boolean isShoot = ap.isShoot();
 				
+				
 				// 플레이어 스탯 정보를 얻어옴
 				double[] Player_StatInfo = new double[100];
 				Player_StatInfo[12] = 50.0d;
-				Player_StatInfo = pp.getstat(player, Player_StatInfo, isShoot);
+				Player_StatInfo = pp.getstat(player, Player_StatInfo);
 				
 				
 				// 타겟의 스탯 정보를 얻어옴
 				double[] Monster_StatInfo = new double[100];
 				Monster_StatInfo[12] = 50.0d;
-				Monster_StatInfo = pp.getstat((LivingEntity)target, Monster_StatInfo, true);
+				Monster_StatInfo = pp.getstat((LivingEntity)target, Monster_StatInfo);
 				
 
 				// 아래는 데미지 증가 코드-------------------------------------------------------
@@ -2260,7 +2300,6 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				temp_damage = pp.getDamageFromStats(Player_StatInfo, 21, 22, 23);
 				if(Debug) Bukkit.broadcastMessage("몬스터 추가 피해에 의해 데미지 증가: " +  temp_damage);
 				damage += temp_damage;
-				
 				
 				
 				// 화살에 의한 공격일 경우 데미지의 증가폭이 활시위를 당긴 정도에 의해 결정됨.
@@ -2388,18 +2427,20 @@ public class ArenaMatch extends JavaPlugin implements Listener
 				//가격하는 입장인 몬스터의 스탯을 구함
 				double[] Monster_StatInfo = new double[100];
 				Monster_StatInfo[12] = 50.0d;
-				Monster_StatInfo = pp.getstat((LivingEntity)damager, Monster_StatInfo, true);
+				Monster_StatInfo = pp.getstat((LivingEntity)damager, Monster_StatInfo);
 				
 				
 				//피격당하는 입장인 플레이어의 스탯을 구함
 				Player player = (Player)target;
 				
+				/*
 				ArenaPlayer ap = ArenaPlayerManager.getArtenaPlayer(player);
 				boolean isShoot = ap.isShoot();
+				*/
 				
 				double[] Player_StatInfo = new double[100];
 				Monster_StatInfo[12] = 50.0d;
-				Player_StatInfo = pp.getstat(player, Player_StatInfo, ap.isShoot());
+				Player_StatInfo = pp.getstat(player, Player_StatInfo);
 				
 				
 				// 아래는 데미지 증가 코드-------------------------------------------------------
@@ -2824,9 +2865,8 @@ public class ArenaMatch extends JavaPlugin implements Listener
 							Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "heal " + p1.getName());
 							Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "heal " + p2.getName());
 							
-							//petblock disable을 위해 커맨드 사용
-							Bukkit.dispatchCommand(p1, "petblocks disable " + p1.getName());
-							Bukkit.dispatchCommand(p2, "petblocks disable " + p2.getName());
+							Bukkit.dispatchCommand(p1, "mobkill wolf 65 ");
+							Bukkit.dispatchCommand(p2, "mobkill wolf 65 ");
 							
 							RemovePlayerInList(p2.getName());
 							RemovePlayerInList(p1.getName());
@@ -2845,8 +2885,8 @@ public class ArenaMatch extends JavaPlugin implements Listener
 							p1.sendMessage("§b[마인아레나] §e전투가 시작되었습니다. 상대를 처치하거나 죽으면 전투가 종료됩니다.");
 							p2.sendMessage("§b[마인아레나] §e전투가 시작되었습니다. 상대를 처치하거나 죽으면 전투가 종료됩니다.");
 							
-							p1.openInventory(pp.CreateProfile(p2));
-							p2.openInventory(pp.CreateProfile(p1));
+							//p1.openInventory(pp.CreateProfile(p2));
+							//p2.openInventory(pp.CreateProfile(p1));
 						}
 						else
 						{
@@ -2923,6 +2963,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		else
 		{
 			p.sendMessage("§b[마인아레나] §e이미 등록되었습니다.");
+			MatchDown(p);
 		}
 		
 	}
@@ -2953,9 +2994,11 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		match.put(loser.getName(), "@");
 		this.KillTimer(loser, winner);
 		
+		/*
 		//petblock 플러그인의 기능을 enable 시킴
 		Bukkit.dispatchCommand(loser, "petblocks enable " + loser.getName());
 		Bukkit.dispatchCommand(winner, "petblocks enable " + winner.getName());
+		*/
 		
 	}
 	public int getPlayerRankQueueNumber(int PlayerScore)
@@ -3084,6 +3127,10 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		 * 위더	 		60 , 61 - 62
 		 * 실명 			63 , 64 - 65
 		 * 영혼 약탈 		66 , 67 - 68 -> 즉시 데미지
+		 * 
+		 * 초열			78 , 79 - 80
+		 * 끈적끈적		81 , 82 - 83
+		 * 혈독			84 , 85 - 86
 		 */
 		
 		// 화상 스탯을 가져옴
@@ -3110,6 +3157,18 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		double soul = pp.getDamageFromStats(StatsInfo, 66, 67, 68);
 		if(Debug) Bukkit.broadcastMessage("영혼 약탈 확률: " + soul);
 		
+		// 초열 스탯을 가져옴
+		double Ex_burn = pp.getDamageFromStats(StatsInfo, 78, 79, 80);
+		if(Debug) Bukkit.broadcastMessage("화상 확률: " + Ex_burn);
+		
+		// 끈적끈적 스탯을 가져옴
+		double Ex_ice = pp.getDamageFromStats(StatsInfo, 81, 82, 83);
+		if(Debug) Bukkit.broadcastMessage("빙결 확률: " + Ex_ice);
+		
+		// 혈독 스탯을 가져옴
+		double Ex_poison = pp.getDamageFromStats(StatsInfo, 84, 85, 86);
+		if(Debug) Bukkit.broadcastMessage("중독 확률: " + Ex_poison);
+		
 		// 화상을 엔티티에 적용함
 		SetFiretoEntity(target, burn, "화상");
 		
@@ -3118,6 +3177,15 @@ public class ArenaMatch extends JavaPlugin implements Listener
 		
 		//중독 이펙트를 엔티티에게 부여함
 		SetPotionEffect(target, poison, "중독");
+		
+		// 화상을 엔티티에 적용함
+		SetFiretoEntity(target, burn, "초열");
+		
+		// 끈적끈적(구속) 이펙트를 엔티티에게 부여함
+		SetPotionEffect(target, ice, "끈적끈적");
+		
+		//혈독 이펙트를 엔티티에게 부여함
+		SetPotionEffect(target, poison, "혈독");
 		
 		// 위더 이펙트를 엔티티에게 부여함
 		SetPotionEffect(target, wither, "위더");
@@ -3541,6 +3609,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
 	}
 	public void LoginTimer(Player p)
 	{
+		/*
 		BukkitTask task = new BukkitRunnable() 
 		{
             @Override
@@ -3551,7 +3620,7 @@ public class ArenaMatch extends JavaPlugin implements Listener
         		Bukkit.dispatchCommand(p, "petblocks enable " + p.getName());
             }
         }.runTaskLater(this, 60);
-	
+		 */
 	}
 	public void ClearScoreBoard(Player p)
 	{
@@ -3661,7 +3730,10 @@ public class ArenaMatch extends JavaPlugin implements Listener
 			UseArena.put(p2.getName(), ArenaName);
 			int socre1 = userscore.getInt("userscore." + p1.getName() + ".Score");
 			int socre2 = userscore.getInt("userscore." + p2.getName() + ".Score");
-			Bukkit.broadcastMessage("§b[마인아레나] §a" + p1.getName()+ "§e님과 §a" + p2.getName() +"§e님의 전투가 (§c" + LocationName + "§e)에서 시작되었습니다!");
+			
+			p1.sendMessage("§b[마인아레나] §a" + p1.getName()+ "§e님과 §a" + p2.getName() +"§e님의 전투가 (§c" + LocationName + "§e)에서 시작되었습니다!");
+			p2.sendMessage("§b[마인아레나] §a" + p1.getName()+ "§e님과 §a" + p2.getName() +"§e님의 전투가 (§c" + LocationName + "§e)에서 시작되었습니다!");
+	
 			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "warp " + location[0] + " " +p1.getName());
 			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "warp " + location[1] + " " + p2.getName());
 			
